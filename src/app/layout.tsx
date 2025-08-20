@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Kanit,Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Script from "next/script";
 
+const kanit = Kanit({
+  subsets:["thai","latin"],
+  weight:["400","500","600","700"]
+})
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -24,8 +29,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <Script 
+          src="https://kit.fontawesome.com/KIT_CODE.js" 
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${kanit.className} antialiased`}
       >
         {children}
       </body>
