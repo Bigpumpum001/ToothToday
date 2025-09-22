@@ -2,8 +2,7 @@
 /node_modules
 .gitigonore 
 
-# frontend
-frontend/node_modules
+# 8frontend
 /vendor # สำหรับ Go modules
 
 # Go artifacts
@@ -16,7 +15,6 @@ frontend/node_modules
 
 # Next.js build output
 /.next
-/frontend/.next
 
 # Environment variables
 .env*
