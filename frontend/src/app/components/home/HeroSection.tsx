@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-
+import Link from "next/link";
 function HeroSection() {
   const images = [
     "/images/hero-1.jpg",
@@ -40,7 +40,7 @@ function HeroSection() {
               className="object-cover"
             />
             {/* Overlay */}
-            <div className="absolute inset-0 bg-black/40"></div>
+            <div className="absolute inset-0 bg-black/50"></div>
           </div>
         ))}
       </div>
@@ -48,7 +48,7 @@ function HeroSection() {
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
         <h1 className="text-4xl md:text-6xl font-bold mb-6">
-          จองคิวทันตกรรม <br /> ง่ายใน 3 คลิก
+          จองคิวทันตกรรม <br /> ง่ายใน 4 คลิก
         </h1>
         <p className="text-xl md:text-2xl mb-8 text-purple-100">
           ระบบจองคิวทันตกรรมออนไลน์
@@ -56,11 +56,13 @@ function HeroSection() {
           ที่ช่วยให้คุณจองคิวได้ง่าย ๆ ด้วยระบบอัตโนมัติ
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button className="bg-teal-500 hover:bg-teal-600 text-white px-8 py-3 rounded-lg text-lg font-medium transition-colors">
+          <Link href="/booking" passHref>
+          <button className="bg-[#4b8bb7] hover:bg-blue-600 text-white px-8 py-3 rounded-4xl text-lg font-medium transition-colors">
             จองคิวทันที
           </button>
+          </Link>
           <a href="#AppointmentStep">
-            <button className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-medium transition-colors">
+            <button className="bg-transparent border border-white text-white hover:bg-amber-200 hover:text-black px-8 py-3 rounded-4xl text-lg font-medium transition-colors">
               ดูตัวอย่าง
             </button>
           </a>

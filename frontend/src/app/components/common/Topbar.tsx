@@ -11,7 +11,7 @@ function Topbar() {
         <p className='text-white text-sm'>เปิดทำการ ทุกวัน 08:00-21:00 น.</p>
       </div>
       <div className="flex items-center gap-1.5">
-        <FontAwesomeIcon icon={faLine} style={{ color: "#1cce99", }} className='text-2xl  ' />
+        <FontAwesomeIcon icon={faLine} style={{ color: "#74C0FC", }} className='text-2xl  ' />
         {/* <Image src={"/images/line-icon.png"} alt='' width={20} height={20} /> */}
         <p className='text-white text-sm'>  ToothToday</p>
       </div>

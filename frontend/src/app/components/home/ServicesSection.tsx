@@ -1,127 +1,143 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { ServiceContent } from "@/app/types/booking";
+import api from "@/app/lib/api";
 function ServicesSection() {
-  const images = [
-    "/images/blog-1.png"
-  ]
-  function truncateText(text: string, maxLength: number): string{
+  const [servicesContent, setServicesContent] = useState<ServiceContent[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get("/services-content");
+        setServicesContent(res.data);
+        // console.log(res.data);
+      } catch (error) {
+        console.error("Error fetching services content: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+  const images = ["/images/blog-1.png"];
+  function truncateText(text: string, maxLength: number): string {
     if (!text) return "";
     return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
   }
+  // if (loading) return <p> Service content is loading ...</p>;
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center pb-9">
-          <h2 className="text-5xl  font-semibold text-blue-900">บริการของเรา</h2>
+          <h2 className="text-4xl  font-semibold text-blue-900">
+            บริการของเรา
+          </h2>
         </div>
-        <div className="grid grid-cols sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="flex flex-col items-center justify-center text-center" >
-            <div className="rounded-xl overflow-hidden">
-              <Image
-              src={"/images/services-pic/dental_care2.png"}
-              alt=""
-              width={280}
-              height={280}
-              priority
-              className="object-cover rounded-xl  transition-transform duration-75 ease-in-out hover:scale-105"
-            />
-            </div>
-            
+        {loading ? "Services is loading ..." : ""}
+        {/* <div className="grid grid-cols sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {servicesContent
+            ? servicesContent.slice(0, 4).map((s, index) => (
+                <div
+                  className="flex flex-col items-center justify-center text-center"
+                  key={index}
+                >
+                  <div className="rounded-xl overflow-hidden">
+                    <Image
+                      src={s.image_url}
+                      alt=""
+                      width={280}
+                      height={280}
+                      priority
+                      className="object-cover rounded-xl  transition-transform duration-75 ease-in-out hover:scale-105"
+                    />
+                  </div>
 
-            <p className="text-blue-900 text-xl font-semibold mt-4 mb-2" >จัดฟัน</p>
-            <p className="text-base text-gray-500  ">
-              {truncateText(`การจัดฟันเป็นวิธีการปรับตำแหน่งฟันและขากรรไกรให้เหมาะสม ช่วยแก้ปัญหาฟันซ้อน ฟันเก ฟันยื่น หรือการสบฟันที่ผิดปกติ นอกจากช่วยให้การบดเคี้ยวมีประสิทธิภาพมากขึ้น ยังช่วยเสริมบุคลิกภาพและความมั่นใจในรอยยิ้มอีกด้วย
-                `, 113)}
-            </p>
+                  <p className="text-blue-900 text-xl font-semibold mt-4 mb-2">
+                    {s.title}
+                  </p>
+                  <p className="text-base text-gray-500  ">
+                    {truncateText(s.content, 113)}
+                    {s.content}
+                  </p>
+                  <button className=" flex items-center justify-center p-2 w-full gap-2 group cursor-pointer">
+                    <p className="text-base text-blue-900 ">อ่านต่อ</p>
+                    <span className="flex items-center justify-center w-10 h-10 rounded-full border border-gray-200  group-hover:border-blue-900 group-active:border-blue-900  transition-colors">
+                      <FontAwesomeIcon
+                        icon={faArrowRight}
+                        className=" text-blue-900 "
+                      />
+                    </span>
+                  </button>
+                </div>
+              ))
+            : ""}
+        </div> */}
+        <div className="hidden lg:grid lg:grid-cols-4 gap-4">
+          {servicesContent?.slice(0, 4).map((s, index) => (
+            <div
+              key={index}
+              className="flex flex-col items-center justify-center text-center "
+            >
+              <div className="rounded-xl overflow-hidden w-[280px] h-[280px]">
+                <Image
+                  src={s.image_url}
+                  alt=""
+                  width={280}
+                  height={280}
+                  priority
+                  className="object-cover rounded-xl transition-transform duration-75 ease-in-out hover:scale-105"
+                />
+              </div>
+              <p className="text-blue-900 text-xl font-semibold mt-4 mb-2">
+                {s.title}
+              </p>
+              <p className="text-base text-gray-500 flex-grow">
+                {s.content}
+                </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Mobile: horizontal scroll */}
+        <div className="lg:hidden flex gap-4 overflow-x-auto py-2 px-1">
+          {servicesContent?.slice(0, 4).map((s, index) => (
+            <div
+              key={index}
+              className="flex-none w-80 flex flex-col items-center justify-center text-center"
+            >
+              <div className="rounded-xl overflow-hidden">
+                <Image
+                  src={s.image_url}
+                  alt=""
+                  width={280}
+                  height={280}
+                  priority
+                  className="object-cover rounded-xl transition-transform duration-75 ease-in-out hover:scale-105"
+                />
+              </div>
+              <p className="text-blue-900 text-xl font-semibold mt-4 mb-2">
+                {s.title}
+              </p>
+              <p className="text-base text-gray-500">{s.content}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-2 p-2 flex justify-center items-center">
+          <Link href="/services" passHref>
             <button className=" flex items-center justify-center p-2 w-full gap-2 group cursor-pointer">
-              <p className="text-base text-blue-900 ">อ่านต่อ</p>
+              <p className="text-base text-blue-900 ">บริการทั้งหมด</p>
               <span className="flex items-center justify-center w-10 h-10 rounded-full border border-gray-200  group-hover:border-blue-900 group-active:border-blue-900  transition-colors">
-                <FontAwesomeIcon icon={faArrowRight} className=" text-blue-900 " />
-
+                <FontAwesomeIcon
+                  icon={faArrowRight}
+                  className=" text-blue-900 "
+                />
               </span>
             </button>
-          </div>
-          <div className="flex flex-col items-center justify-center text-center" >
-
-            <div className="rounded-xl overflow-hidden">
-              <Image
-              src={"/images/services-pic/cosmetic_dentistry.png"}
-              alt=""
-              width={280}
-              height={280}
-              priority
-              className="object-cover rounded-xl  transition-transform duration-75 ease-in-out hover:scale-105"
-            />
-            </div>
-
-            <p className="text-blue-900 text-xl font-semibold mt-4 mb-2" >ทันตกรรมเพื่อความสวยงาม
-            </p>
-            <p className="text-base text-gray-500">
-              {truncateText(`ทันตกรรมเพื่อความสวยงามมุ่งเน้นไปที่การปรับปรุงรูปลักษณ์ของฟันและรอยยิ้ม ไม่ว่าจะเป็นการฟอกสีฟัน การเคลือบผิวฟัน หรือการปรับแต่งรูปฟัน เพื่อสร้างรอยยิ้มที่สวยงามและเป็นธรรมชาติ สะท้อนบุคลิกภาพที่มั่นใจของคุณ
-`, 113)}
-            </p>
-            <button className=" flex items-center justify-center p-2 w-full gap-2 group cursor-pointer">
-              <p className="text-base text-blue-900 ">อ่านต่อ</p>
-              <span className="flex items-center justify-center w-10 h-10 rounded-full border border-gray-200  group-hover:border-blue-900 group-active:border-blue-900  transition-colors">
-                <FontAwesomeIcon icon={faArrowRight} className=" text-blue-900 " />
-
-              </span>
-            </button>
-          </div>
-          <div className="flex flex-col items-center justify-center text-center" >
-
-            <div className="rounded-xl overflow-hidden">
-              <Image
-              src={"/images/services-pic/dentures.png"}
-              alt=""
-              width={280}
-              height={280}
-              priority
-              className="object-cover rounded-xl  transition-transform duration-75 ease-in-out hover:scale-105"
-            />
-            </div>
-
-            <p className="text-blue-900 text-xl font-semibold mt-4 mb-2" >รากฟันเทียม - ฟันปลอม
-            </p>
-            <p className="text-base text-gray-500">
-              {truncateText(`รากฟันเทียมและฟันปลอมเป็นทางเลือกในการทดแทนฟันที่สูญเสียไป โดยรากฟันเทียมจะยึดติดกับกระดูกขากรรไกรอย่างมั่นคง ทำให้ใช้งานได้ใกล้เคียงฟันธรรมชาติ ส่วนฟันปลอมเป็นอีกหนึ่งวิธีที่ช่วยฟื้นฟูการเคี้ยว พูด และความมั่นใจในการใช้ชีวิตประจำวัน`, 113)}
-            </p>
-            <button className=" flex items-center justify-center p-2 w-full gap-2 group cursor-pointer">
-              <p className="text-base text-blue-900 ">อ่านต่อ</p>
-              <span className="flex items-center justify-center w-10 h-10 rounded-full border border-gray-200  group-hover:border-blue-900 group-active:border-blue-900   transition-colors">
-                <FontAwesomeIcon icon={faArrowRight} className=" text-blue-900 " />
-
-              </span>
-            </button>
-          </div>
-          <div className="flex flex-col items-center justify-center text-center" >
-
-            <div className="rounded-xl overflow-hidden">
-              <Image
-              src={"/images/services-pic/dental_general.png"}
-              alt=""
-              width={280}
-              height={280}
-              priority
-              className="object-cover rounded-xl  transition-transform duration-75 ease-in-out hover:scale-105"
-            />
-            </div>
-
-            <p className="text-blue-900 text-xl font-semibold mt-4 mb-2" >ทันตกรรมทั่วไป
-            </p>
-            <p className="text-base text-gray-500">
-              {truncateText(`ทันตกรรมทั่วไปครอบคลุมการดูแลพื้นฐานด้านสุขภาพช่องปาก เช่น การขูดหินปูน อุดฟัน ถอนฟัน และการตรวจสุขภาพฟันประจำปี เพื่อป้องกันปัญหาฟันผุและโรคเหงือก ช่วยรักษาสุขภาพช่องปากให้แข็งแรงในระยะยาว`, 100)}
-            </p>
-            <button className=" flex items-center justify-center p-2 w-full gap-2 group cursor-pointer">
-              <p className="text-base text-blue-900 ">อ่านต่อ</p>
-              <span className="flex items-center justify-center w-10 h-10 rounded-full border border-gray-200  group-hover:border-blue-900 group-active:border-blue-900   transition-colors">
-                <FontAwesomeIcon icon={faArrowRight} className=" text-blue-900 " />
-
-              </span>
-            </button>
-          </div>
+          </Link>
         </div>
       </div>
     </section>
