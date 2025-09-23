@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Doctor, Slot } from "@/app/types/booking";
+import { Slot } from "@/app/types/booking";
 import api from "@/app/lib/api";
 function DoctorSchedule() {
   const today = new Date();
@@ -18,7 +18,7 @@ function DoctorSchedule() {
         console.log("sl",res.data)
       } catch (err) {
         console.error(err);
-        // setSlots([]);
+        setSlots([]);
       } finally {
         setLoading(false);
       }
