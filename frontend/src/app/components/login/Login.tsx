@@ -13,7 +13,7 @@ function Login() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const data = await login({ email, password });
-    console.log(data);
+    // console.log(data);
     if (data.token) {
       localStorage.setItem("token", data.token);
       alert("Login Success!");

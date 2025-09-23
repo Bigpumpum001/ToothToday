@@ -51,7 +51,7 @@ function WhyUsSection() {
               <ChangeAppointment className="w-30 h-30"/>
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              เลื่อนคิวและยกเลิกได้
+              เลื่อนคิวและยกเลิกได้ <span className="text-gray-500">(*soon)</span>
             </h3>
             <p className="text-gray-600">
               สามารถเลื่อนคิวหรือยกเลิกได้ <br />

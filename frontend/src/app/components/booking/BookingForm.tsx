@@ -153,7 +153,7 @@ function BookingForm() {
     try {
       if (!token) return alert("กรุณาเข้าสู่ระบบก่อน");
       const decoded = jwtDecode<TokenPayload>(token);
-      console.log("de", decoded);
+      // console.log("de", decoded);
       // }
       const image_url = file ? URL.createObjectURL(file) : "";
       // console.log(selectedDoctor,selectedService,formatDateTimeForPG(datetime),notes||null,image_url)

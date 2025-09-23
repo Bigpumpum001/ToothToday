@@ -76,7 +76,7 @@ function ServicesSection() {
               ))
             : ""}
         </div> */}
-        <div className="hidden lg:grid lg:grid-cols-4 gap-4">
+        <div className="hidden xl:grid xl:grid-cols-4 gap-4">
           {servicesContent?.slice(0, 4).map((s, index) => (
             <div
               key={index}
@@ -103,7 +103,7 @@ function ServicesSection() {
         </div>
 
         {/* Mobile: horizontal scroll */}
-        <div className="lg:hidden flex gap-4 overflow-x-auto py-2 px-1">
+        <div className="xl:hidden flex gap-4 overflow-x-auto py-2 px-1">
           {servicesContent?.slice(0, 4).map((s, index) => (
             <div
               key={index}
