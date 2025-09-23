@@ -87,7 +87,7 @@ function About() {
           </h2>
           {loading ? "Doctors is loading ..." : ""}
 
-          <div className="grid grid-cols sm:grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          {/* <div className="grid grid-cols sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 text-center">
             {doctors.map((dentist) => (
               <div
                 key={dentist.id}
@@ -107,6 +107,51 @@ function About() {
                 <p className="text-gray-600 text-sm">
                   {dentist.specialization}
                 </p>
+              </div>
+            ))}
+          </div> */}
+          {/* Desktop / Tablet Grid */}
+          <div className="hidden lg:grid lg:grid-cols-3 gap-8">
+            {doctors?.map((d, index) => (
+              <div
+                key={index}
+                className="flex flex-col items-center justify-center text-center"
+              >
+                <Image
+                  src={d.image_url}
+                  alt=""
+                  width={400}
+                  height={400}
+                  priority
+                  className="rounded-xl mb-4"
+                />
+                <p className="text-blue-900 text-xl font-semibold mb-2">
+                  {d.name}
+                </p>
+                <p className="text-base text-gray-500">{d.specialization}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Mobile Horizontal Scroll */}
+          <div className="lg:hidden flex gap-4 overflow-x-auto py-2 px-1">
+            {doctors?.map((d, index) => (
+              <div
+                key={index}
+                className="flex-none w-72 flex flex-col items-center justify-center text-center"
+              >
+                <Image
+                  src={d.image_url}
+                  alt=""
+                  width={400}
+                  height={400}
+                  priority
+                  className="rounded-xl mb-4"
+                />
+                <p className="text-blue-900 text-xl font-semibold mb-2">
+                  {d.name}
+                </p>
+                <p className="text-base text-gray-500">{d.specialization}</p>
               </div>
             ))}
           </div>
