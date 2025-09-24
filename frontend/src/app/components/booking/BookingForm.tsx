@@ -127,9 +127,6 @@ function BookingForm() {
     setSelectedDoctor(null);
   }, [selectedSlot, availableSlots]);
 
-  // useEffect(() => {
-  //   console.log("selectedDate : ", selectedDate);
-  // }, [selectedDate]);
   useEffect(() => {
     setBookedSlots([]);
     if (!selectedDoctor) return;
@@ -257,7 +254,7 @@ function BookingForm() {
             </h1>
         </div> */}
 
-        <div className="grid xl:grid-cols-2 xl:gap-5 xl:w-2/4 items-center border border-gray-300 bg-white p-6 rounded-lg shadow space-y-4">
+        <div className="grid xl:grid-cols-2 xl:gap-5 xl:w-3/4 items-center border border-gray-300 bg-white p-6 rounded-lg shadow space-y-4">
           <div className="xl:w-full ">
             <label>เลือกบริการ</label>
             <select
