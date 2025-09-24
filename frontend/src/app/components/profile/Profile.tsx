@@ -28,7 +28,7 @@ function Profile() {
 
   useEffect(() => {
     const token = localStorage.getItem("token"); // ดึง token ใน useEffect -> safe
-    console.log(token);
+    // console.log(token);
 
     if (!token) return;
     if (token) {
@@ -57,7 +57,7 @@ function Profile() {
           },
         });
         setProfile(res.data.user);
-        console.log(res.data);
+        // console.log(res.data);
         setFormData({
           name: res.data.user.name || "",
           email: res.data.user.email || "",
@@ -65,7 +65,7 @@ function Profile() {
           chronic_disease: res.data.user.chronic_disease || "",
           age: res.data.user.age != null ? String(res.data.user.age) : "",
         });
-        console.log("fs", formData);
+        // console.log("fs", formData);
         setAppointments(res.data.appointments || []);
       } catch (error) {
         console.error("error :", error);
@@ -75,7 +75,7 @@ function Profile() {
   }, []);
   const handleChange = (e: FormEvent) => {
     const target = e.target as HTMLInputElement;
-    console.log(target);
+    // console.log(target);
     setFormData({ ...formData, [target.name]: target.value });
   };
 
@@ -88,7 +88,7 @@ function Profile() {
         ...formData,
         age: formData.age ? Number(formData.age) : 0,
       };
-      console.log("payload", payload);
+      // console.log("payload", payload);
       const res = await api.put("/users/me", payload, {
         headers: {
           Authorization: `Bearer ${token}`,
