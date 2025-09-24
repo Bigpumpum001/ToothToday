@@ -136,6 +136,7 @@ function BookingForm() {
           `/appointment/booked?doctorId=${selectedDoctor.id}&date=${selectedDate}`
         );
         setBookedSlots(res.data);
+        // console.log(res.data)
       } catch (error) {
         console.error(error);
       }
@@ -327,7 +328,6 @@ function BookingForm() {
                   <option
                     value={slot.time}
                     key={`${slot.time}-${index}`}
-                    // disabled={bookedSlots?.includes(slot.time)}
                     disabled={slot.status === "booked"}
                   >
                     {slot.time}{" "}
@@ -337,14 +337,9 @@ function BookingForm() {
                       : slot.status === "booked"
                       ? "(เต็ม)"
                       : ""}
-                    {/* {bookedSlots?.includes(slot.time) ? "(เต็ม)" : ""} */}
                   </option>
                 ))}
-                {/* {availableSlots.filter(s => s. === selectedDate).map(slot => (
-              <option key={slot.time} value={slot.time} disabled={bookedSlots.includes(slot.time)}>
-                {slot.time} {bookedSlots.includes(slot.time) ? "(เต็ม)" : ""}
-              </option>
-            ))} */}
+              
               </select>
             </div>
             <div className="">

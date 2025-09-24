@@ -15,7 +15,7 @@ interface CalendarProps {
     month: number
   ) => Promise<MonthAvailability>;
 }
-function Calendar2({
+function Calendar({
   selectedService,
   onSelectDate,
   fetchAvailability,
@@ -202,4 +202,4 @@ function Calendar2({
   );
 }
 
-export default Calendar2;
+export default Calendar;
