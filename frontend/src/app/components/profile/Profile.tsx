@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 import { faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
-
+import Image from "next/image";
 type TokenPayload = {
   exp: number;
   role: string;
@@ -215,19 +215,35 @@ function Profile() {
           {appointments
             .filter((a) => a.status === "current")
             .map((a) => (
-              <div key={a.id} className="border border-blue-300 rounded-2xl p-3 mb-2 bg-green-100 text-green-800">
+              <div
+                key={a.id}
+                className="border border-blue-300 rounded-2xl p-3 mb-2 bg-green-100 text-green-800"
+              >
                 <p>
-                  <span className="text-blue-900 font-semibold">{a.time_range}</span>
-                   {" | "}
-                  {a.date} {" | "} {a.doctor_name} (
-                  {a.service_name}) {a.note ? a.note : ""}
-                  {a.image_url ? a.image_url : ""}
+                  <span className="text-blue-900 font-semibold">
+                    {a.time_range}
+                  </span>
+                  {" | "}
+                  {a.date} {" | "} {a.doctor_name} ({a.service_name}){" "}
+                  {a.note ? a.note : ""}
+                  {a.image_url ? (
+                    <span className="flex justify-center items-center">
+                      <Image
+                        src={a.image_url ? a.image_url : ""}
+                        alt=""
+                        width={200}
+                        height={200}
+                        priority
+                        className="rounded-xl mt-2"
+                      />
+                    </span>
+                  ) : (
+                    ""
+                  )}
                 </p>
               </div>
             ))}
         </div>
-      
-        
 
         {/* ประวัติการนัดในอดีต */}
         <div className="">
@@ -235,18 +251,35 @@ function Profile() {
           {appointments
             .filter((a) => a.status === "past")
             .map((a) => (
-              <div key={a.id} className="border border-gray-300 rounded-2xl p-3 mb-2 bg-gray-100 text-gray-600">
+              <div
+                key={a.id}
+                className="border border-gray-300 rounded-2xl p-3 mb-2 bg-gray-100 text-gray-600"
+              >
                 <p>
-                  <span className="text-blue-900 font-semibold">{a.time_range}</span>
-                   {" | "}
-                  {a.date} {" | "} {a.doctor_name} (
-                  {a.service_name}) {a.note ? a.note : ""}
-                  {a.image_url ? a.image_url : ""}
+                  <span className="text-blue-900 font-semibold">
+                    {a.time_range}
+                  </span>
+                  {" | "}
+                  {a.date} {" | "} {a.doctor_name} ({a.service_name}){" "}
+                  {a.note ? a.note : ""}
+                  {a.image_url ? (
+                    <span className="flex justify-center items-center">
+                      <Image
+                        src={a.image_url ? a.image_url : ""}
+                        alt=""
+                        width={200}
+                        height={200}
+                        priority
+                        className="rounded-xl mt-2"
+                      />
+                    </span>
+                  ) : (
+                    ""
+                  )}
                 </p>
               </div>
             ))}
         </div>
-        
 
         {/* ปุ่มเชื่อมไลน์ */}
         <button className="bg-green-500 text-white px-4 py-1 rounded mt-4">

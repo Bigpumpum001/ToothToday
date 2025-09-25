@@ -65,7 +65,6 @@ function BookingForm() {
     );
     return res.data;
   };
-
   // fetch slots สำหรับ service ทันทีที่เลือก service (ยังไม่เลือกวัน)
   useEffect(() => {
     if (!selectedService) {
@@ -148,12 +147,22 @@ function BookingForm() {
     e.preventDefault();
     if (!selectedDate || !selectedSlot || !selectedDoctor || !selectedService)
       return alert("กรอกข้อมูลไม่ครบ");
+    if (!token) return alert("กรุณาเข้าสู่ระบบก่อน");
+    const decoded = jwtDecode<TokenPayload>(token);
+    const formData = new FormData();
+    formData.append("user_id", decoded.user_id.toString()); // ใส่จาก token หรือ decoded
+    formData.append("doctor_id", selectedDoctor.id.toString());
+    formData.append("service_id", selectedService.id.toString());
+    formData.append(
+      "appointment_time",
+      `${selectedDate}T${selectedSlot.time}:00+07:00`
+    );
+    formData.append("status", "pending");
+    formData.append("note", notes || "");
+    if (file) formData.append("file", file);
     try {
-      if (!token) return alert("กรุณาเข้าสู่ระบบก่อน");
-      const decoded = jwtDecode<TokenPayload>(token);
       // console.log("de", decoded);
       // }
-      const image_url = file ? URL.createObjectURL(file) : "";
       // console.log(selectedDoctor,selectedService,formatDateTimeForPG(datetime),notes||null,image_url)
 
       // console.log({
@@ -165,14 +174,19 @@ function BookingForm() {
       //   note: notes ? notes : "",
       //   image_url: image_url,
       // });
-      const res = await api.post("/appointment/book", {
-        user_id: decoded.user_id,
-        doctor_id: selectedDoctor?.id,
-        service_id: selectedService?.id,
-        appointment_time: `${selectedDate}T${selectedSlot.time}:00+07:00`,
-        status: "pending",
-        note: notes ? notes : "",
-        image_url: image_url,
+      // const image_url = file ? URL.createObjectURL(file) : "";
+
+      // const res = await api.post("/appointment/book", {
+      //   user_id: decoded.user_id,
+      //   doctor_id: selectedDoctor?.id,
+      //   service_id: selectedService?.id,
+      //   appointment_time: `${selectedDate}T${selectedSlot.time}:00+07:00`,
+      //   status: "pending",
+      //   note: notes ? notes : "",
+      //   image_url: image_url,
+      // });
+      const res = await api.post("/appointment/book", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
       // alert("จองคิวเรียบร้อย");
       setSelectedDoctor(null);
@@ -195,7 +209,11 @@ function BookingForm() {
     <p>เวลา: <strong>${data.time_range}</strong></p>
     ${
       data.image_url
-        ? `<img src="${data.image_url}" style="max-width:200px; margin-top:10px;" />`
+        ? `
+        <div class="flex justify-center items-center mt-2">
+        <img src="${data.image_url}" style="max-width:200px; margin-top:10px;" />
+        </div>
+        `
         : ""
     }
   `,
@@ -339,7 +357,6 @@ function BookingForm() {
                       : ""}
                   </option>
                 ))}
-              
               </select>
             </div>
             <div className="">

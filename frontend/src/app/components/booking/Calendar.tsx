@@ -32,12 +32,17 @@ function Calendar({
       setSelectedDateLocal("");
     }
   }, [selectedService]);
+  const monthStr = `${currentMonth.getFullYear()}-${(
+    currentMonth.getMonth() + 1
+  )
+    .toString()
+    .padStart(2, "0")}`;
 
   useEffect(() => {
     const year = currentMonth.getFullYear(),
       month = currentMonth.getMonth() + 1;
     fetchAvailability(year, month).then(setAvailability);
-  }, [currentMonth, fetchAvailability]);
+  }, [monthStr, fetchAvailability]);
 
   const startDay = new Date(
     currentMonth.getFullYear(),
@@ -177,8 +182,7 @@ function Calendar({
                   }
                 >
                   {day && (
-                    <div
-                    >
+                    <div>
                       {day && (
                         <span
                           className={`font-extralight text-lg text-gray-900 ${
