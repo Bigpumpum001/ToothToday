@@ -13,6 +13,7 @@ type TokenPayload = {
   role: string;
   user_id: number;
 };
+
 function Profile() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [editing, setEditing] = useState(false);
@@ -26,11 +27,21 @@ function Profile() {
     age: "",
   });
 
+  const isTokenExpired = (token: string) => {
+    if (!token) return true;
+    const decoded: TokenPayload = jwtDecode(token);
+    const now = Date.now() / 1000; // timestamp วินาที
+    return decoded.exp < now;
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token"); // ดึง token ใน useEffect -> safe
     // console.log(token);
 
-    if (!token) return;
+    if (!token) {
+    window.location.href = "/login";
+    return;
+  }
     if (token) {
       try {
         const decoded: TokenPayload = jwtDecode(token);
@@ -41,13 +52,18 @@ function Profile() {
         console.error("Invalid token", err);
       }
     }
-    // let tokenData: { token: string; user_id: string } | null = null;
-    //  try {
-    //   tokenData = JSON.parse(token);
-    // } catch (err) {
-    //   console.error("Invalid token format", err);
-    //   return;
-    // }
+    if (isTokenExpired(token)) {
+      Swal.fire({
+        icon: "warning",
+        title: "Session หมดอายุ",
+        text: "กรุณา login ใหม่เพื่อเข้าใช้งาน",
+        confirmButtonText: "ตกลง",
+      }).then(() => {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      });
+      return;
+    }
     const fetchProfile = async () => {
       try {
         const res = await api.get(`/users/me`, {
