@@ -39,9 +39,9 @@ function Profile() {
     // console.log(token);
 
     if (!token) {
-    window.location.href = "/login";
-    return;
-  }
+      window.location.href = "/login";
+      return;
+    }
     if (token) {
       try {
         const decoded: TokenPayload = jwtDecode(token);
@@ -157,7 +157,7 @@ function Profile() {
 
         {editing ? (
           <div className=" ">
-            <div className="grid grid-cols-2 space-y-3 text-left">
+            <div className="grid grid-cols-1 md:grid-cols-2 space-y-3 text-left ">
               <input
                 name="name"
                 value={formData.name}
@@ -175,7 +175,11 @@ function Profile() {
               <input
                 name="phone"
                 value={formData.phone}
-                onChange={handleChange}
+                onChange={(e) => {
+                  // ลบทุกตัวที่ไม่ใช่เลข
+                  const onlyNumbers = e.target.value.replace(/\D/g, "");
+                  setFormData({ ...formData, phone: onlyNumbers });
+                }}
                 className="border border-gray-400 p-1 pl-2 rounded-lg w-50"
                 placeholder="Phone"
               />
