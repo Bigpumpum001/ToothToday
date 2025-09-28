@@ -13,7 +13,8 @@ export interface ProfileAppointment {
   doctor_name: string;
   service_name: string;
   time_range: string; // "08:00-10:00"
-  status: "current" | "past";
+  is_past: "current" | "past";
+  status: string;
   note?:string;
   image_url?: string;
   date:string;
