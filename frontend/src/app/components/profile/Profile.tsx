@@ -382,8 +382,8 @@ function Profile() {
                                 <Image
                                   src={a.image_url ? a.image_url : ""}
                                   alt=""
-                                  width={150}
-                                  height={150}
+                                  width={170}
+                                  height={170}
                                   priority
                                   className="rounded-xl mt-2"
                                 />
@@ -464,6 +464,16 @@ function Profile() {
                             </p>
                           </div>
                         </div>
+                        {a.status === "pending" ? (
+                          <p className="text-center">
+                            <span className="text-red-500">*</span>{" "}
+                            กรุณาเช็คอินที่คลินิกภายใน 10 นาทีหลังเริ่มบริการ
+                          </p>
+                        ) : a.status === "confirm" ? (
+                          <p className="text-center">เช็คอินแล้ว</p>
+                        ) : (
+                          ""
+                        )}
                       </div>
                     ))}
                 </>
@@ -573,6 +583,15 @@ function Profile() {
                             </p>
                           </div>
                         </div>
+                        {a.status === "no_show" ? (
+                          <p className="text-center">
+                            ไม่ได้เช็คอินที่คลินิกภายใน 10 นาทีหลังเริ่มบริการ
+                          </p>
+                        ) : a.status === "complete" ? (
+                          <p className="text-center">เสร็จสิ้นการรับบริการ</p>
+                        ) : (
+                          ""
+                        )}
                       </div>
                     ))}
                 </>
