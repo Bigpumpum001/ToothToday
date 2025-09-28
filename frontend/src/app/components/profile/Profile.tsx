@@ -311,18 +311,18 @@ function Profile() {
             <>
               <button
                 onClick={() => setEditing(true)}
-                className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 shadow-sm px-4 py-2 rounded "
+                className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 shadow-sm px-4 py-1 sm:py-2 rounded "
               >
                 <FontAwesomeIcon icon={faPenToSquare} /> Edit
               </button>
               <button
-                className="bg-green-500 text-white px-4 py-2 rounded"
+                className="bg-green-500 text-white px-4 py-1 sm:py-2 rounded"
                 disabled
               >
                 เชื่อมไลน์ (soon)
               </button>
               <button
-                className="bg-gray-500 text-white px-4 py-2 rounded"
+                className="bg-gray-500 text-white px-4 py-1 sm:py-2 rounded"
                 disabled
               >
                 นัดหมายใหม่ (soon)
@@ -336,7 +336,7 @@ function Profile() {
           <div className="text-2xl text-bold text-blue-900 ps-3">
             ประวัติการนัด
           </div>
-          <div className="">
+          <div className="flex flex-col sm:flex-row">
             <button
               onClick={() => setActiveTab("current")}
               className={`px-6 py-2 rounded-lg font-medium transition-all ${
