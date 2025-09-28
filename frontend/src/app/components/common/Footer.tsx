@@ -1,5 +1,5 @@
 import React from "react";
-
+import Link from "next/link";
 function Footer() {
   return (
     <footer className="bg-gray-900 text-white py-7">
@@ -20,20 +20,20 @@ function Footer() {
             <h4 className="font-semibold mb-4">บริการ</h4>
             <ul className="space-y-2 text-sm text-gray-400">
               <li>
-                <a href="#" className="hover:text-white">
+                <Link href="/booking" className="hover:text-white">
                   จองคิวออนไลน์
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white">
+                <Link href="/queue" className="hover:text-white">
                   ตรวจสอบคิว
-                </a>
+                </Link>
               </li>
-              <li>
-                <a href="#" className="hover:text-white">
-                  จัดการคิว
-                </a>
-              </li>
+              {/* <li>
+                <Link href="#" className="hover:text-white">
+                  จัดการคิว *soon
+                </Link>
+              </li> */}
             </ul>
           </div>
 
