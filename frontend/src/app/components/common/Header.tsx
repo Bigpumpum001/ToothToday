@@ -27,7 +27,7 @@ function Header() {
 
       <nav className="  flex flex-col md:flex-row  p-4 bg-white ">
         <div className="container mx-auto flex items-center justify-between    ">
-          <a href="#" className="flex">
+          <Link href="/" className="flex">
             <Image
               className="object-contain"
               src="/images/logo/logo2.png"
@@ -35,7 +35,7 @@ function Header() {
               width={150}
               height={150}
             />
-          </a>
+          </Link>
 
           {/* Toggle Hamburger Menu Button */}
           {/* <div className="block md:hidden"> */}

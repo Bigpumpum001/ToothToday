@@ -5,22 +5,57 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { User, Mail, Phone, Lock } from "lucide-react";
 import Image from "next/image";
+import Swal from "sweetalert2";
 function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const router = useRouter();
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
 
+    // ลบตัวอักษรที่ไม่ใช่ ASCII
+    value = value.replace(/[^\x00-\x7F]/g, "");
+
+    setEmail(value);
+  };
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
-     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+    e.preventDefault();        
+    const isValidEmail = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    const asciiOnly = /^[\x00-\x7F]+$/;
+    
+    if (!isValidEmail.test(email) || !asciiOnly.test(email)) {
+      Swal.fire({
+        icon: "error",
+        title: "อีเมลไม่ถูกต้อง",
+        text: "กรุณากรอกอีเมลเป็นภาษาอังกฤษเท่านั้น เช่น example@gmail.com",
+        confirmButtonText: "ตกลง",
+      });
       return;
     }
+    const phonePattern = /^[0-9]{9,10}$/;
+    if (!phonePattern.test(phone)) {
+      Swal.fire({
+        icon: "error",
+        title: "เบอร์ไม่ถูกต้อง",
+        text: "กรุณากรอกหมายเลขโทรศัพท์ให้ถูกต้อง (9–10 หลัก)",
+        confirmButtonText: "ตกลง",
+      });
+      return;
+    }
+    if (password !== confirmPassword) {
+       Swal.fire({
+        icon: "error",
+        title: "รหัสผ่านไม่ถูกต้อง",
+        text: "รหัสผ่านไม่ตรงกัน",
+        confirmButtonText: "ตกลง",
+      });
+      return;
+    }
+
     try {
       const data = await register({ name, email, password, phone });
       console.log(data);
@@ -139,7 +174,7 @@ function Register() {
                   type="email"
                   placeholder="Email Address"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={handleEmailChange}
                   className="w-full pl-10 p-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:outline-none"
                   required
                 />
@@ -178,7 +213,10 @@ function Register() {
               </div>
               {/* Confirm Password */}
               <div className="relative">
-                <Lock className="absolute left-3 top-4 text-gray-400" size={18} />
+                <Lock
+                  className="absolute left-3 top-4 text-gray-400"
+                  size={18}
+                />
                 <input
                   type="password"
                   placeholder="Confirm Password"

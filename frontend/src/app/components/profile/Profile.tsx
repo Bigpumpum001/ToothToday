@@ -465,12 +465,12 @@ function Profile() {
                           </div>
                         </div>
                         {a.status === "pending" ? (
-                          <p className="text-center">
+                          <p className="text-center mt-1">
                             <span className="text-red-500">*</span>{" "}
                             กรุณาเช็คอินที่คลินิกภายใน 10 นาทีหลังเริ่มบริการ
                           </p>
                         ) : a.status === "confirm" ? (
-                          <p className="text-center">เช็คอินแล้ว</p>
+                          <p className="text-center mt-1">เช็คอินแล้ว</p>
                         ) : (
                           ""
                         )}
@@ -584,11 +584,11 @@ function Profile() {
                           </div>
                         </div>
                         {a.status === "no_show" ? (
-                          <p className="text-center">
+                          <p className="text-center mt-1">
                             ไม่ได้เช็คอินที่คลินิกภายใน 10 นาทีหลังเริ่มบริการ
                           </p>
                         ) : a.status === "complete" ? (
-                          <p className="text-center">เสร็จสิ้นการรับบริการ</p>
+                          <p className="text-center mt-1">เสร็จสิ้นการรับบริการ</p>
                         ) : (
                           ""
                         )}

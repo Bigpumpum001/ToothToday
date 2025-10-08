@@ -101,6 +101,8 @@ function DoctorSchedule() {
                           ? "ว่าง"
                           : s.status === "booked"
                           ? "มีคิว"
+                          : s.status === "passed"
+                          ? "ผ่านไปแล้ว"
                           : ""}
                       </div>
                     </div>
