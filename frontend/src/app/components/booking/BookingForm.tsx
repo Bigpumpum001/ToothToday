@@ -3,7 +3,6 @@ import api from "@/app/lib/api";
 import React, { useState, useEffect, FormEvent } from "react";
 import Calendar from "./Calendar";
 import { Doctor, Slot, MonthAvailability, Service } from "@/app/types/booking";
-import { Span } from "next/dist/trace";
 import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 import axios from "axios";

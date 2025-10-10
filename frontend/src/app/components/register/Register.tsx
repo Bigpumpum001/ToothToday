@@ -23,10 +23,10 @@ function Register() {
     setEmail(value);
   };
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();        
+    e.preventDefault();
     const isValidEmail = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
     const asciiOnly = /^[\x00-\x7F]+$/;
-    
+
     if (!isValidEmail.test(email) || !asciiOnly.test(email)) {
       Swal.fire({
         icon: "error",
@@ -47,7 +47,7 @@ function Register() {
       return;
     }
     if (password !== confirmPassword) {
-       Swal.fire({
+      Swal.fire({
         icon: "error",
         title: "รหัสผ่านไม่ถูกต้อง",
         text: "รหัสผ่านไม่ตรงกัน",
@@ -60,12 +60,22 @@ function Register() {
       const data = await register({ name, email, password, phone });
       console.log(data);
       // if (data.success) {
-      alert("Register success! Please Login.");
+      Swal.fire({
+        icon: "success",
+        title: "สมัครสมาชิกสำเร็จ!",
+        text: "กรุณาเข้าสู่ระบบเพื่อใช้งาน",
+        confirmButtonText: "ตกลง",
+      });
       router.push("/login");
       // } else alert(data.error || "Register failed");
     } catch (error) {
       console.error("Register error:", error);
-      alert("Something went wrong. Please try again.");
+      Swal.fire({
+        icon: "error",
+        title: "เกิดข้อผิดพลาด",
+        text: "เกิดปัญหาบางอย่าง กรุณาลองใหม่อีกครั้ง",
+        confirmButtonText: "ตกลง",
+      });
     }
   };
   return (

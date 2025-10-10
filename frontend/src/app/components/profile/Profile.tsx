@@ -17,6 +17,8 @@ import {
   faClock,
   faUserDoctor,
   faNoteSticky,
+  faTrash,
+  faArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
 import { faLine } from "@fortawesome/free-brands-svg-icons";
 
@@ -29,9 +31,11 @@ type TokenPayload = {
 };
 
 function Profile() {
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("current");
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [editing, setEditing] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const [appointments, setAppointments] = useState<ProfileAppointment[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [formData, setFormData] = useState({
@@ -80,6 +84,7 @@ function Profile() {
       return;
     }
     const fetchProfile = async () => {
+      setIsLoading(true);
       try {
         const res = await api.get(`/users/me`, {
           headers: {
@@ -99,16 +104,20 @@ function Profile() {
         setAppointments(res.data.appointments || []);
       } catch (error) {
         console.error("error :", error);
+      } finally {
+        setIsLoading(false); // โหลดเสร็จ
       }
     };
     fetchProfile();
   }, []);
-  const handleChange = (e: FormEvent) => {
+
+  const ChangeEditing = (e: FormEvent) => {
     const target = e.target as HTMLInputElement;
     // console.log(target);
     setFormData({ ...formData, [target.name]: target.value });
   };
-  const handleCancel = async () => {
+
+  const Cancel = async () => {
     if (profile) {
       setFormData({
         name: profile.name || "",
@@ -120,7 +129,8 @@ function Profile() {
     }
     setEditing(false);
   };
-  const handleSave = async () => {
+
+  const SaveEditing = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
@@ -156,21 +166,143 @@ function Profile() {
       });
     }
   };
+
+  const DeleteAppointment = async (id: number) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const res = await api.delete(`/appointment/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (res.status >= 200 && res.status < 300) {
+        setAppointments((prev) => prev.filter((a) => a.id !== id));
+        Swal.fire({
+          icon: "success",
+          title: "สำเร็จ",
+          text: "ยกเลิกคิวเรียบร้อย",
+          confirmButtonText: "ตกลง",
+        }).then(() => {
+          // รีเฟรชหน้า
+          window.location.reload();
+        });
+      }
+    } catch (error) {
+      console.error("เกิดข้อผิดพลาด:", error);
+      Swal.fire({
+        icon: "error",
+        title: "เกิดข้อผิดพลาด",
+        text: "ลบคิวไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+        confirmButtonText: "ตกลง",
+      });
+    }
+  };
+  const connectLine = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      Swal.fire({
+        title: "เกิดข้อผิดพลาด",
+        text: "กรุณา login ก่อนเชื่อม LINE",
+        icon: "warning",
+        confirmButtonText: "ปิด",
+        confirmButtonColor: "#ef4444", // สีแดง
+      });
+      return;
+    }
+    const decoded: TokenPayload = jwtDecode(token);
+    const state = btoa(JSON.stringify({ user_id: decoded.user_id }));
+    const clientId = process.env.NEXT_PUBLIC_LINE_LOGIN_CHANNEL_ID;
+    const redirectUri =
+      process.env.NEXT_PUBLIC_LINE_LOGIN_REDIRECT_URI ||
+      // +`?token=${token}`
+      "";
+    const encodedRedirectUri = encodeURIComponent(redirectUri);
+    window.location.href = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodedRedirectUri}&state=${state}&scope=profile%20openid`;
+  };
+  const unLinkLine = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      Swal.fire({
+        title: "เกิดข้อผิดพลาด",
+        text: "กรุณา login ก่อนยกเลิกการเชื่อม LINE",
+        icon: "warning",
+        confirmButtonText: "ปิด",
+        confirmButtonColor: "#ef4444",
+      });
+      return;
+    }
+    try {
+      const res = await api.delete("/line/unlink", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.status >= 200 && res.status < 300) {
+        Swal.fire({
+          icon: "success",
+          title: "สำเร็จ",
+          text: "ยกเลิกการเชื่อมต่อ LINE เรียบร้อยแล้ว",
+          confirmButtonText: "ตกลง",
+        }).then(() => {
+          // รีเฟรชหน้า
+          window.location.reload();
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "ล้มเหลว",
+          text: "ไม่สามารถยกเลิกการเชื่อมต่อ LINE ได้",
+          confirmButtonText: "ตกลง",
+        });
+      }
+    } catch (error) {
+      console.error("เกิดข้อผิดพลาด:", error);
+      Swal.fire({
+        icon: "error",
+        title: "เกิดข้อผิดพลาด",
+        text: "เกิดปัญหาบางอย่าง กรุณาลองใหม่อีกครั้ง",
+        confirmButtonText: "ตกลง",
+      });
+    }
+  };
+  if (isLoading) {
+    return (
+      <div className="mt-20 min-h-screen bg-blue-50 flex items-center   flex-col py-10">
+        <p className="text-gray-500 text-lg mt-3">isLoading...</p>
+      </div>
+    );
+  }
   return (
     <div className="mt-20 min-h-screen bg-blue-50 flex items-center justify-center  flex-col py-10">
       <h2 className="text-4xl font-bold text-blue-900 text-center mt-5  mb-5">
         Profile
       </h2>
-      <section className="bg-white p-8 rounded-2xl shadow-md w-full max-w-xl space-y-3 h-[80vh] overflow-y-auto">
+      <section className="bg-white mt-3 p-8 rounded-2xl shadow-md w-full max-w-7xl space-y-3 h-[80vh] overflow-y-auto">
+        {/* {profile?.line_picture_url ? ( */}
+        <div className="flex items-center justify-center">
+          <Image
+            src={profile?.line_picture_url ?? "/images/profile/unknown.png"}
+            alt=""
+            width={170}
+            height={170}
+            priority
+            className="rounded-full mt-2 "
+          />
+        </div>
+        {/* ) : (
+          ""
+        )} */}
         {editing ? (
-          <div className=" ">
-            <div className="grid grid-cols-1 md:grid-cols-2 space-y-3 text-left ">
+          <div className="flex justify-center ">
+            <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:mt-3 space-y-3 text-left ">
               <div className="flex justify-center items-center">
                 <FontAwesomeIcon icon={faUser} className="text-blue-900 pe-4" />
                 <input
                   name="name"
                   value={formData.name}
-                  onChange={handleChange}
+                  onChange={ChangeEditing}
                   className="border border-gray-400 p-1 pl-2 rounded-lg w-50"
                   placeholder="Name"
                 />
@@ -183,7 +315,7 @@ function Profile() {
                 <input
                   name="email"
                   value={formData.email}
-                  onChange={handleChange}
+                  onChange={ChangeEditing}
                   className="border border-gray-400  p-1 pl-2 rounded-lg w-50"
                   placeholder="Email"
                 />
@@ -215,7 +347,7 @@ function Profile() {
                   name="age"
                   value={formData.age ?? ""}
                   type="number"
-                  onChange={handleChange}
+                  onChange={ChangeEditing}
                   className="border border-gray-400 p-1 pl-2 rounded-lg w-50 "
                   placeholder="Age"
                 />
@@ -228,7 +360,7 @@ function Profile() {
                 <input
                   name="chronic_disease"
                   value={formData.chronic_disease}
-                  onChange={handleChange}
+                  onChange={ChangeEditing}
                   className="border border-gray-400 p-1 pl-2 rounded-lg w-50"
                   placeholder="โรคประจำตัว"
                 />
@@ -237,71 +369,92 @@ function Profile() {
           </div>
         ) : (
           <div className=" text-center">
-            <p className="text-gray-900 text-3xl text-bold mb-3">
+            <p className="text-gray-900 text-3xl  text-bold mb-3">
               {profile?.name}
             </p>
-            <div className="grid grid-cols-2 space-y-3 text-left">
-              <p className="text-gray-700 text-lg">
-                <FontAwesomeIcon icon={faEnvelope} className="text-blue-900" />{" "}
-                {profile?.email}
-              </p>
-              <p className="text-gray-700 text-lg">
-                <FontAwesomeIcon icon={faPhone} className="text-blue-900" />{" "}
-                {profile?.phone}
-              </p>
-              <p className="text-gray-700 text-lg">
-                <FontAwesomeIcon
-                  icon={faCakeCandles}
-                  className="text-blue-900"
-                />{" "}
-                {profile?.age != 0 ? (
-                  <>{profile?.age} ปี</>
-                ) : (
-                  "ยังไม่ได้กรอกอายุ"
-                )}
-              </p>
-              <p className="text-gray-700 text-lg">
-                <FontAwesomeIcon
-                  icon={faHeartPulse}
-                  className="text-blue-900"
-                />{" "}
-                {profile?.chronic_disease &&
-                profile.chronic_disease.trim() != ""
-                  ? profile.chronic_disease
-                  : "ยังไม่ได้กรอกโรคประจำตัว"}
-              </p>
-
-              <p className="text-gray-700 text-lg">
-                <FontAwesomeIcon icon={faLine} className="text-blue-900" /> :
-                ยังไม่ได้เชื่อมไลน์
-              </p>
-
-              {isAdmin && (
-                <p className="text-red-500  text-lg">
-                  {profile?.role ? (
-                    <>
-                      <span className="text-black">Status: </span>
-                      {profile.role}
-                    </>
+            <div className="flex justify-center ">
+              <div className="grid grid-cols-2 space-y-3 text-left md:gap-x-5">
+                <p className="text-gray-700 text-lg">
+                  <FontAwesomeIcon
+                    icon={faEnvelope}
+                    className="text-blue-900"
+                  />{" "}
+                  {profile?.email}
+                </p>
+                <p className="text-gray-700 text-lg">
+                  <FontAwesomeIcon icon={faPhone} className="text-blue-900" />{" "}
+                  {profile?.phone}
+                </p>
+                <p className="text-gray-700 text-lg">
+                  <FontAwesomeIcon
+                    icon={faCakeCandles}
+                    className="text-blue-900"
+                  />{" "}
+                  {profile?.age != 0 ? (
+                    <>{profile?.age} ปี</>
                   ) : (
-                    ""
+                    "ยังไม่ได้กรอกอายุ"
                   )}
                 </p>
-              )}
+                <p className="text-gray-700 text-lg">
+                  <FontAwesomeIcon
+                    icon={faHeartPulse}
+                    className="text-blue-900"
+                  />{" "}
+                  {profile?.chronic_disease &&
+                  profile.chronic_disease.trim() != ""
+                    ? profile.chronic_disease
+                    : "ยังไม่ได้กรอกโรคประจำตัว"}
+                </p>
+
+                <p className="text-gray-700 text-lg">
+                  <FontAwesomeIcon icon={faLine} className="text-blue-900" /> :
+                  {profile?.line_user_id ? (
+                    <>
+                      {" "}
+                      <span className="font-bold">
+                        {profile.line_display_name}
+                      </span>
+                    </>
+                  ) : (
+                    <>ยังไม่ได้เชื่อมบัญชี LINE</>
+                  )}
+                </p>
+
+                {isAdmin && (
+                  <p className="text-red-500  text-lg">
+                    {profile?.role ? (
+                      <>
+                        <span className="text-black">Status: </span>
+                        {profile.role}
+                      </>
+                    ) : (
+                      ""
+                    )}
+                  </p>
+                )}
+              </div>
             </div>
+          </div>
+        )}
+        {profile?.line_user_id ? (
+          <>{""}</>
+        ) : (
+          <div className="text-center text-gray-600">
+            โปรดเชื่อมไลน์เพื่อรับการแจ้งเตือน
           </div>
         )}
         <div className="flex justify-center items-center gap-4">
           {editing ? (
             <>
               <button
-                onClick={handleSave}
+                onClick={SaveEditing}
                 className=" px-4 py-3 rounded bg-green-300 text-green-800 hover:bg-green-400 shadow-sm"
               >
                 <FontAwesomeIcon icon={faFloppyDisk} /> Save
               </button>
               <button
-                onClick={handleCancel}
+                onClick={Cancel}
                 className=" px-4 py-3 rounded bg-red-400 text-white hover:bg-red-600 shadow-sm"
               >
                 <FontAwesomeIcon icon={faTimes} /> Cancel
@@ -315,18 +468,41 @@ function Profile() {
               >
                 <FontAwesomeIcon icon={faPenToSquare} /> Edit
               </button>
-              <button
-                className="bg-green-500 text-white px-4 py-1 sm:py-2 rounded"
-                disabled
-              >
-                เชื่อมไลน์ (soon)
-              </button>
-              <button
-                className="bg-gray-500 text-white px-4 py-1 sm:py-2 rounded"
-                disabled
-              >
-                นัดหมายใหม่ (soon)
-              </button>
+
+              {profile?.line_user_id ? (
+                <button
+                  onClick={unLinkLine}
+                  className="bg-red-400 hover:bg-red-500 text-white px-4 py-1 sm:py-2 rounded"
+                >
+                  <FontAwesomeIcon icon={faLine} className="text-2xl me-1" />{" "}
+                  ยกเลิกการเชื่อม LINE
+                </button>
+              ) : (
+                <button
+                  onClick={connectLine}
+                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-1 sm:py-2 rounded flex items-center"
+                  // disabled
+                >
+                  <FontAwesomeIcon icon={faLine} className="text-2xl me-1" />{" "}
+                  เชื่อม LINE
+                </button>
+              )}
+
+              {showDelete ? (
+                <button
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 sm:py-2 rounded "
+                  onClick={() => setShowDelete(false)}
+                >
+                  <FontAwesomeIcon icon={faArrowLeft} /> ย้อนกลับ
+                </button>
+              ) : (
+                <button
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-1 sm:py-2 rounded"
+                  onClick={() => setShowDelete(true)}
+                >
+                  <FontAwesomeIcon icon={faTrash} /> ยกเลิกคิว
+                </button>
+              )}
             </>
           )}
         </div>
@@ -367,7 +543,7 @@ function Profile() {
             <>
               {appointments.filter((a) => a.is_past === "current").length >
               0 ? (
-                <>
+                <div className="grid grid-cols-1 md:grid-cols-2 md:gap-2">
                   {appointments
                     .filter((a) => a.is_past === "current")
                     .map((a) => (
@@ -397,7 +573,7 @@ function Profile() {
                                   {a.service_name}
                                 </p>
                               </div>
-                              <div className="flex justify-center items-center">
+                              <div className="flex justify-start items-center">
                                 <FontAwesomeIcon
                                   icon={faUserDoctor}
                                   className="text-blue-900 pe-1"
@@ -465,10 +641,24 @@ function Profile() {
                           </div>
                         </div>
                         {a.status === "pending" ? (
-                          <p className="text-center mt-1">
-                            <span className="text-red-500">*</span>{" "}
-                            กรุณาเช็คอินที่คลินิกภายใน 10 นาทีหลังเริ่มบริการ
-                          </p>
+                          <>
+                            <p className="text-center mt-1">
+                              <span className="text-red-500">*</span>{" "}
+                              กรุณาเช็คอินที่คลินิกภายใน 10 นาทีหลังเริ่มบริการ
+                            </p>
+                            {showDelete ? (
+                              <div className="flex items-center justify-end">
+                                <button
+                                  onClick={() => DeleteAppointment(a.id)}
+                                  className="flex items-center mt-1 gap-1 text-red-600 hover:text-red-800"
+                                >
+                                  <FontAwesomeIcon icon={faTrash} /> ยกเลิกคิว
+                                </button>
+                              </div>
+                            ) : (
+                              ""
+                            )}
+                          </>
                         ) : a.status === "confirm" ? (
                           <p className="text-center mt-1">เช็คอินแล้ว</p>
                         ) : (
@@ -476,7 +666,7 @@ function Profile() {
                         )}
                       </div>
                     ))}
-                </>
+                </div>
               ) : (
                 <p className="text-center pt-5">
                   ยังไม่มีประวัติการนัดหมายปัจจุบัน
@@ -486,7 +676,7 @@ function Profile() {
           ) : (
             <>
               {appointments.filter((a) => a.is_past === "past").length > 0 ? (
-                <>
+                <div className="grid grid-cols-1 md:grid-cols-2 md:gap-2">
                   {appointments
                     .filter((a) => a.is_past === "past")
                     .map((a) => (
@@ -588,13 +778,15 @@ function Profile() {
                             ไม่ได้เช็คอินที่คลินิกภายใน 10 นาทีหลังเริ่มบริการ
                           </p>
                         ) : a.status === "complete" ? (
-                          <p className="text-center mt-1">เสร็จสิ้นการรับบริการ</p>
+                          <p className="text-center mt-1">
+                            เสร็จสิ้นการรับบริการ
+                          </p>
                         ) : (
                           ""
                         )}
                       </div>
                     ))}
-                </>
+                </div>
               ) : (
                 <p className="text-center pt-5">
                   ยังไม่มีประวัติการนัดหมายที่ผ่านมา

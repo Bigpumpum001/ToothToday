@@ -5,8 +5,9 @@ export interface ProfileData {
     email:string;
     role:string;
     chronic_disease?:string;
-    
-    
+    line_user_id?:string| null;
+    line_display_name?:string| null;
+    line_picture_url?:string| null;
 }
 export interface ProfileAppointment {
   id: number;
