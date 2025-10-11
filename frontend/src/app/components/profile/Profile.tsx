@@ -275,11 +275,11 @@ function Profile() {
     );
   }
   return (
-    <div className="mt-20 min-h-screen bg-blue-50 flex items-center justify-center  flex-col py-10">
-      <h2 className="text-4xl font-bold text-blue-900 text-center mt-5  mb-5">
+    <div className="mt-5 xl:mt-20 min-h-screen bg-blue-50 flex items-center justify-center  flex-col py-10">
+      {/* <h2 className="text-4xl font-bold text-blue-900 text-center mt-5  mb-5">
         Profile
-      </h2>
-      <section className="bg-white mt-3 p-8 rounded-2xl shadow-md w-full max-w-7xl space-y-3 h-[80vh] overflow-y-auto">
+      </h2> */}
+      <section className="bg-white mt-3 p-8 rounded-2xl shadow-md w-full max-w-7xl space-y-3 h-[85vh] overflow-y-auto">
         {/* {profile?.line_picture_url ? ( */}
         <div className="flex items-center justify-center">
           <Image
@@ -369,7 +369,7 @@ function Profile() {
           </div>
         ) : (
           <div className=" text-center">
-            <p className="text-gray-900 text-3xl  text-bold mb-3">
+            <p className="text-gray-900 text-3xl text-bold mb-3">
               {profile?.name}
             </p>
             <div className="flex justify-center ">
