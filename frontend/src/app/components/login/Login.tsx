@@ -17,7 +17,7 @@ function Login() {
     if (data.token) {
       localStorage.setItem("token", data.token);
       alert("Login Success!");
-      router.push("/");
+      router.push("/booking");
     } else alert(data.error);
   };
 

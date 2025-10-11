@@ -6,7 +6,7 @@ import { Doctor, Slot, MonthAvailability, Service } from "@/app/types/booking";
 import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 import axios from "axios";
-
+import Link from "next/link";
 type TokenPayload = {
   exp: number;
   role: string;
@@ -271,7 +271,22 @@ function BookingForm() {
               จองคิวคลินิกฟัน
             </h1>
         </div> */}
-
+        <div className=""></div>
+        <div className="text-center mb-4">
+          {!isLoggedIn ? (
+            <>
+              <p>โปรดล็อคอินก่อนทำรายการ <Link
+                href="/login"
+                className="text-blue-600 hover:underline font-medium"
+              >
+                Login here
+              </Link></p>
+              
+            </>
+          ) : (
+            ""
+          )}
+        </div>
         <div className="grid xl:grid-cols-2 xl:gap-5 xl:w-3/4 items-center border border-gray-300 bg-white p-6 rounded-lg shadow space-y-4">
           <div className="xl:w-full ">
             <label>เลือกบริการ</label>
@@ -288,8 +303,11 @@ function BookingForm() {
                 setAvailableSlots([]);
                 setAvailableDoctors([]);
               }}
+              disabled={!isLoggedIn}
             >
-              <option value="">-- เลือกบริการ --</option>
+              <option value="" disabled>
+                {!isLoggedIn ? "โปรดล็อคอินก่อนทำรายการ" : "-- เลือกบริการ --"}
+              </option>
               {services.map((s) => (
                 <option value={s.id} key={s.id} className="">
                   {s.name} ราคา {formatPrice(s.price_min, s.price_max)}
