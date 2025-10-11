@@ -54,7 +54,7 @@ function Profile() {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token"); // ดึง token ใน useEffect -> safe
+    const token = localStorage.getItem("token"); 
     // console.log(token);
 
     if (!token) {
@@ -83,7 +83,11 @@ function Profile() {
       });
       return;
     }
-    const fetchProfile = async () => {
+    
+    fetchProfile(token);
+  }, []);
+
+  const fetchProfile = async (token:string) => {
       setIsLoading(true);
       try {
         const res = await api.get(`/users/me`, {
@@ -108,9 +112,6 @@ function Profile() {
         setIsLoading(false); // โหลดเสร็จ
       }
     };
-    fetchProfile();
-  }, []);
-
   const ChangeEditing = (e: FormEvent) => {
     const target = e.target as HTMLInputElement;
     // console.log(target);
@@ -147,6 +148,7 @@ function Profile() {
         },
       });
       setProfile(res.data);
+      await fetchProfile(token)
       setEditing(false);
       Swal.fire({
         title: "บันทึกสำเร็จ!",
@@ -155,6 +157,7 @@ function Profile() {
         confirmButtonText: "ตกลง",
         confirmButtonColor: "#22c55e", // สีเขียว
       });
+      // window.location.reload();
     } catch (error) {
       console.error(error);
       Swal.fire({
@@ -449,13 +452,13 @@ function Profile() {
             <>
               <button
                 onClick={SaveEditing}
-                className=" px-4 py-3 rounded bg-green-300 text-green-800 hover:bg-green-400 shadow-sm"
+                className="mt-2 px-4 py-1 sm:py-2 rounded bg-green-300 text-gray-900 hover:bg-green-400 shadow-sm"
               >
                 <FontAwesomeIcon icon={faFloppyDisk} /> Save
               </button>
               <button
                 onClick={Cancel}
-                className=" px-4 py-3 rounded bg-red-400 text-white hover:bg-red-600 shadow-sm"
+                className="mt-2 px-4 py-1 sm:py-2 rounded bg-red-400 text-white hover:bg-red-600 shadow-sm"
               >
                 <FontAwesomeIcon icon={faTimes} /> Cancel
               </button>
@@ -463,8 +466,8 @@ function Profile() {
           ) : (
             <>
               <button
-                onClick={() => setEditing(true)}
-                className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 shadow-sm px-4 py-1 sm:py-2 rounded "
+                onClick={() => {setEditing(true);setShowDelete(false)}}
+                className="bg-amber-400 text-gray-900 hover:bg-amber-500 shadow-sm px-4 py-1 sm:py-2 rounded "
               >
                 <FontAwesomeIcon icon={faPenToSquare} /> Edit
               </button>
@@ -490,7 +493,7 @@ function Profile() {
 
               {showDelete ? (
                 <button
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 sm:py-2 rounded "
+                  className="bg-blue-800 hover:bg-blue-900 text-white px-4 py-1 sm:py-2 rounded "
                   onClick={() => setShowDelete(false)}
                 >
                   <FontAwesomeIcon icon={faArrowLeft} /> ย้อนกลับ
@@ -498,7 +501,7 @@ function Profile() {
               ) : (
                 <button
                   className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-1 sm:py-2 rounded"
-                  onClick={() => setShowDelete(true)}
+                  onClick={() => {setShowDelete(true);setEditing(false)}}
                 >
                   <FontAwesomeIcon icon={faTrash} /> ยกเลิกคิว
                 </button>
