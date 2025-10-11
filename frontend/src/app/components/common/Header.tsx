@@ -25,12 +25,12 @@ function Header() {
     <div className="fixed top-0 left-0 w-full z-50 ">
       <Topbar />
 
-      <nav className="  flex flex-col md:flex-row  p-5 bg-white ">
+      <nav className="  flex flex-col md:flex-row  p-4 bg-white ">
         <div className="container mx-auto flex items-center justify-between    ">
           <Link href="/" className="flex">
             <Image
               className="object-contain"
-              src="/images/logo/logo3.png"
+              src="/images/logo/logo2.png"
               alt=""
               width={150}
               height={150}
