@@ -144,9 +144,22 @@ function BookingForm() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!selectedDate || !selectedSlot || !selectedDoctor || !selectedService)
-      return alert("กรอกข้อมูลไม่ครบ");
-    if (!token) return alert("กรุณาเข้าสู่ระบบก่อน");
+    if (!selectedDate || !selectedSlot || !selectedDoctor || !selectedService) {
+      Swal.fire({
+        icon: "warning",
+        title: "กรอกข้อมูลไม่ครบ",
+        showConfirmButton: true,
+      });
+      return;
+    }
+    if (!token) {
+      Swal.fire({
+        icon: "error",
+        title: "กรุณาเข้าสู่ระบบก่อน",
+        showConfirmButton: true,
+      });
+      return;
+    }
     const decoded = jwtDecode<TokenPayload>(token);
     const formData = new FormData();
     formData.append("user_id", decoded.user_id.toString()); // ใส่จาก token หรือ decoded
@@ -275,13 +288,15 @@ function BookingForm() {
         <div className="text-center mb-4">
           {!isLoggedIn ? (
             <>
-              <p>โปรดล็อคอินก่อนทำรายการ <Link
-                href="/login"
-                className="text-blue-600 hover:underline font-medium"
-              >
-                Login here
-              </Link></p>
-              
+              <p>
+                โปรดล็อคอินก่อนทำรายการ{" "}
+                <Link
+                  href="/login"
+                  className="text-blue-600 hover:underline font-medium"
+                >
+                  Login here
+                </Link>
+              </p>
             </>
           ) : (
             ""

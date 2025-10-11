@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, Lock } from "lucide-react";
+import Swal from "sweetalert2";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -16,9 +17,21 @@ function Login() {
     // console.log(data);
     if (data.token) {
       localStorage.setItem("token", data.token);
-      alert("Login Success!");
-      router.push("/booking");
-    } else alert(data.error);
+      Swal.fire({
+        icon: "success",
+        title: "Login Success!",
+        showConfirmButton: false,
+        timer: 1500,
+      }).then(() => {
+        router.push("/booking");
+      });
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: data.error,
+      });
+    }
   };
 
   return (
@@ -41,7 +54,9 @@ function Login() {
                   Login
                 </h2>
                 <p className="text-gray-700 text-center">
-Log in to access your account and manage your dental appointments anytime, anywhere.                </p>
+                  Log in to access your account and manage your dental
+                  appointments anytime, anywhere.{" "}
+                </p>
               </div>
 
               <div className="relative">
