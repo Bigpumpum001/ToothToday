@@ -55,7 +55,7 @@ function DoctorSchedule() {
       <div className="flex items-center gap-3 mb-4 justify-center">
         <button
           onClick={prevDay}
-          className={`px-3 py-2 rounded-xl bg-gray-200 ${
+          className={`px-3 py-2 border border-gray-400  rounded-xl bg-gray-200 ${
             date <= todayStr
               ? "text-white cursor-not-allowed"
               : " hover:bg-gray-300"
@@ -73,7 +73,7 @@ function DoctorSchedule() {
         />
         <button
           onClick={nextDay}
-          className="px-3 py-2 rounded-xl bg-gray-200 hover:bg-gray-300"
+          className="px-3 py-2 border border-gray-400 rounded-xl bg-gray-200 hover:bg-gray-300"
         >
           Next day &gt;
         </button>
@@ -90,7 +90,7 @@ function DoctorSchedule() {
               {slots.map((s: Slot) => (
                 <div className="flex" key={s.time}>
                   <li
-                    className={`mb-3 p-3 rounded-xl flex-grow ${getStatusColor(
+                    className={`mb-3 p-3 border border-gray-400 rounded-2xl flex-grow ${getStatusColor(
                       s.status
                     )}`}
                   >

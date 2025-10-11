@@ -27,8 +27,8 @@ function Login() {
         <div className="grid md:grid-cols-2 gap-5">
           <div className="flex justify-center items-center">
             <Image
-              className="object-cover border rounded-lg"
-              src="/images/logo/logo_form.png"
+              className="object-cover border border-white rounded-3xl"
+              src="/images/logo/logo_cartoon6.jpg"
               alt=""
               width={400}
               height={400}
