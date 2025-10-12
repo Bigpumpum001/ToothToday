@@ -299,7 +299,12 @@ function BookingForm() {
               </p>
             </>
           ) : (
-            ""
+            <p>รับการแจ้งเตือนผ่านไลน์ <Link
+                  href="/profile"
+                  className="text-blue-600 hover:underline font-medium"
+                >
+                  คลิกเลย
+                </Link></p>
           )}
         </div>
         <div className="grid xl:grid-cols-2 xl:gap-5 xl:w-3/4 items-center border border-gray-300 bg-white p-6 rounded-lg shadow space-y-4">
@@ -378,7 +383,7 @@ function BookingForm() {
                   <option
                     value={slot.time}
                     key={`${slot.time}-${index}`}
-                    disabled={slot.status === "booked"}
+                    disabled={slot.status === "booked" ||slot.status === "passed"}
                   >
                     {slot.time}{" "}
                     {/* {slot.status === "booked" ? "(เต็ม)" : ""} */}
