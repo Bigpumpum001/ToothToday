@@ -1,0 +1,18 @@
+services:
+  toothtoday:
+    image: toothtoday
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    # network_mode: "host"
+    ports:
+      - 8080:8080
+    env_file:
+      - .env.local
+    
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /keys/toothtoday-gcs.json
+    volumes:
+      - ../toothtoday-gcs.json:/keys/toothtoday-gcs.json
+
+  

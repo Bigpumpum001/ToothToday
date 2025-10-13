@@ -11,12 +11,11 @@ type Appointment struct {
 	Status          string    `json:"status"`
 	Note            *string   `json:"note"`
 	ImageURL        *string   `json:"image_url"`
-	DurationMinutes int
-	// `json:"duration_minutes"`
+	DurationMinutes int       // `json:"duration_minutes"`
 	// return create appointment
-	DoctorName  string `json:"doctor_name"`  // เพิ่ม
-	ServiceName string `json:"service_name"` // เพิ่ม
-	TimeRange   string "time_range"
+	DoctorName  string `json:"doctor_name"`
+	ServiceName string `json:"service_name"`
+	TimeRange   string `json:"time_range"`
 }
 type DoctorAppointment struct {
 	ID              int    `json:"id"`
@@ -36,4 +35,5 @@ type ProfileAppointment struct {
 	Note        *string `json:"note"`
 	ImageURL    *string `json:"image_url"`
 	Date        string  `json:"date"`
+	IsPast      string  `json:"is_past"`
 }

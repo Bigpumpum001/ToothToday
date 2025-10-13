@@ -3,9 +3,11 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 	"toothtoday/internal/db"
 	"toothtoday/internal/models"
+	"toothtoday/internal/storage"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,8 +37,8 @@ func GetProfile(c *gin.Context) {
 	var user models.User
 
 	err := db.Pool.QueryRow(c, `
-	select name,email,role,phone,chronic_disease,age from users where id=$1
-	`, userID).Scan(&user.Name, &user.Email, &user.Role, &user.Phone, &user.ChronicDisease, &user.Age)
+	select name,email,role,phone,chronic_disease,age,line_user_id,line_display_name,line_picture_url from users where id=$1
+	`, userID).Scan(&user.Name, &user.Email, &user.Role, &user.Phone, &user.ChronicDisease, &user.Age, &user.LineUserID, &user.LineDisplayName, &user.LinePictureUrl)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User not found"})
@@ -50,7 +52,7 @@ func GetProfile(c *gin.Context) {
         JOIN doctors d ON a.doctor_id = d.id
         JOIN services s ON a.service_id = s.id
         WHERE a.user_id=$1
-        ORDER BY a.appointment_time DESC`,
+        ORDER BY a.appointment_time ASC`,
 		userID,
 	)
 	if err != nil {
@@ -59,7 +61,7 @@ func GetProfile(c *gin.Context) {
 	}
 	defer rows.Close()
 	var appointments []models.ProfileAppointment
-	now := time.Now()
+	now := time.Now().In(db.Loc)
 	for rows.Next() {
 		var a models.ProfileAppointment
 		var start time.Time
@@ -67,7 +69,7 @@ func GetProfile(c *gin.Context) {
 		if err := rows.Scan(&a.ID, &start, &a.Status, &a.ImageURL, &duration, &a.DoctorName, &a.ServiceName, &a.Note); err != nil {
 			continue
 		}
-
+		start = start.In(db.Loc)
 		a.Date = start.Format("2006-01-02")
 
 		// คำนวณช่วงเวลา
@@ -78,11 +80,23 @@ func GetProfile(c *gin.Context) {
 		)
 		// แยก current / past
 		if start.After(now) {
-			a.Status = "current"
+			a.IsPast = "current"
 		} else {
-			a.Status = "past"
+			a.IsPast = "past"
 		}
-
+		if a.ImageURL != nil {
+			trimmed := strings.TrimSpace(*a.ImageURL)
+			if trimmed == "" {
+				empty := ""
+				a.ImageURL = &empty
+			} else {
+				url := storage.GetFileURL(trimmed)
+				a.ImageURL = &url
+			}
+		} else {
+			empty := ""
+			a.ImageURL = &empty
+		}
 		appointments = append(appointments, a)
 	}
 	// fmt.Println("appointments", appointments)
@@ -97,7 +111,7 @@ func GetProfile(c *gin.Context) {
 // PUT /users/me
 func UpdateProfile(c *gin.Context) {
 	userID := c.GetInt("user_id") // จาก JWT middleware
-	// fmt.Println("userID e", userID)
+	// fmt.Println("userID", userID)
 	// struct สำหรับรับ JSON body
 	var input struct {
 		Name           string `json:"name"`
@@ -112,7 +126,6 @@ func UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	// update database
 	_, err := db.Pool.Exec(c,
 		`UPDATE users 
          SET name=$1, email=$2, phone=$3, chronic_disease=$4, age=$5 
@@ -124,13 +137,12 @@ func UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	// ส่งข้อมูลกลับ frontend
 	c.JSON(200, gin.H{
-		"id":             userID,
-		"name":           input.Name,
-		"email":          input.Email,
-		"phone":          input.Phone,
-		"chronicDisease": input.ChronicDisease,
-		"age":            input.Age,
+		"id":              userID,
+		"name":            input.Name,
+		"email":           input.Email,
+		"phone":           input.Phone,
+		"chronic_disease": input.ChronicDisease,
+		"age":             input.Age,
 	})
 }

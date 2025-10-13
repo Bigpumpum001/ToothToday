@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"toothtoday/internal/db"
 	"toothtoday/internal/models"
+	"toothtoday/internal/storage"
 
 	"github.com/gin-gonic/gin"
 )
@@ -49,6 +50,7 @@ func GetServicesContent(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "db scan error "})
 			return
 		}
+		s.ImageURL = storage.GetFileURL(s.ImageURL)
 		servicesContent = append(servicesContent, s)
 	}
 	if err := rows.Err(); err != nil {
@@ -58,20 +60,6 @@ func GetServicesContent(c *gin.Context) {
 	c.JSON(http.StatusOK, servicesContent)
 }
 
-// func GetServiceByID(serviceID int) {
-// 	var durationMinutes int
-// 	err := db.Pool.QueryRow(context.Background(), `
-// 	select duration_minutes from services
-// 	where id = $1
-// 	`, serviceID).Scan(&durationMinutes)
-// 	if err != nil {
-// 		log.Println("getServiceByID error:", err)
-
-// 		return 0
-// 	}
-
-//		return durationMinutes
-//	}
 func GetServiceByID(c *gin.Context) {
 	idStr := c.Param("id")
 	serviceID, err := strconv.Atoi(idStr)

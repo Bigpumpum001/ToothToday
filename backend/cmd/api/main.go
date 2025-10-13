@@ -3,34 +3,48 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
+	"log"
 	"os"
 	"toothtoday/internal/db"
 	"toothtoday/internal/handlers"
 	"toothtoday/internal/handlers/jobs"
 	"toothtoday/internal/middleware"
+	"toothtoday/internal/storage"
+	"toothtoday/services"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/line/line-bot-sdk-go/v7/linebot"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	lineChannelSecret := os.Getenv("LINE_CHANNEL_SECRET")
-	lineChannelAccessToken := os.Getenv("LINE_CHANNEL_ACCESS_TOKEN")
-	bot, err := linebot.New(
-		lineChannelSecret,
-		lineChannelAccessToken,
-	)
-	if err != nil {
-		panic(err)
+	if os.Getenv("GO_ENV") != "production" {
+		if err := godotenv.Load(".env.local"); err != nil {
+			log.Println("No .env file found")
+		}
+	}
+
+	allowOrigins := []string{
+		os.Getenv("FRONTEND_URL"),
+	}
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	//line
+	if err := services.InitLineBot(); err != nil {
+		log.Panic("Line Bot init failed:", err)
 	}
 	db.Connect()
+	if err := storage.InitStorage(); err != nil {
+		log.Fatal("Storage init failed:", err)
+	}
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"}, // frontend origin
+		AllowOrigins:     allowOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"}, // ✅ ต้องมี Authorization
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 	}))
 	r.GET("/hello", func(c *gin.Context) {
@@ -59,6 +73,7 @@ func main() {
 	//appointment
 	r.GET("/api/appointment", handlers.GetAppointment)
 	r.POST("/api/appointment/book", handlers.CreateAppointment)
+	r.DELETE("/api/appointment/:id", middleware.AuthMiddleware(), handlers.DeleteAppointment)
 	r.GET("/api/appointment/slots", handlers.GetDoctorSlots)
 	r.GET("/api/appointment/booked", handlers.GetBookedSlots)
 	r.GET("/api/appointment/availability", handlers.GetMonthAvailability)
@@ -67,57 +82,17 @@ func main() {
 	r.GET("/api/appointment/availability/day", handlers.GetDayAvailability)
 
 	//line
-	r.POST("/line/webhook", func(c *gin.Context) {
-		events, err := bot.ParseRequest(c.Request)
-		if err != nil {
+	r.GET("/api/line/callback", handlers.LineLoginCallback)
+	r.DELETE("/api/line/unlink", middleware.AuthMiddleware(), handlers.UnlinkLineAccount)
 
-			fmt.Println("Error parsing request:", err)
-			c.Status(http.StatusOK) // ให้ LINE ไม่ resend
-			return
-			// if err == linebot.ErrInvalidSignature {
-			// 	c.Status(http.StatusBadRequest)
-			// } else {
-			// 	c.Status(http.StatusInternalServerError)
-			// }
-			// return
-		}
-		for _, event := range events {
-			fmt.Println("Event type:", event.Type)
-			fmt.Println("UserID:", event.Source.UserID)
-			if msg, ok := event.Message.(*linebot.TextMessage); ok {
-				fmt.Println("Message text:", msg.Text)
-			}
-			if event.Type == linebot.EventTypeMessage {
-				userID := "Uca5abc2a10bf96d078a853d17924b597"
-				bot.PushMessage(userID, linebot.NewTextMessage("สวัสดี! คุณจองคิวเรียบร้อยแล้ว")).Do()
-				// switch message := event.Message.(type) {
-				// case *linebot.TextMessage:
-				// 	// ตอบกลับข้อความอัตโนมัติ
-				// 	bot.ReplyMessage(event.ReplyToken,
-				// 		linebot.NewTextMessage("คุณส่งข้อความ: "+message.Text)).Do()
-				// }
-			}
-		}
-		c.Status(http.StatusOK)
-
-	})
-	// ตัวอย่างส่งข้อความ push
-	r.GET("/send-test", func(c *gin.Context) {
-		userID := "USER_LINE_ID" // ใส่ userId ของผู้ใช้ LINE
-		_, err := bot.PushMessage(userID,
-			linebot.NewTextMessage("สวัสดี! คุณจองคิวเรียบร้อยแล้ว")).Do()
-		if err != nil {
-			fmt.Println("ส่งข้อความไม่สำเร็จ:", err)
-		}
-		c.String(200, "ส่งข้อความแล้ว")
-	})
 	// เริ่ม scheduler
 	ctx := context.Background()
+	go jobs.ScheduleNotifyJob(ctx, db.Pool)
 	go jobs.ScheduleNoShowJob(ctx, db.Pool)
 	go jobs.ScheduleCompleteJob(ctx, db.Pool)
 
-	r.Run(":8080")
+	r.Run(":" + port)
+	// keep main alive
 	select {}
 
-	// keep main alive
 }

@@ -14,6 +14,7 @@ var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
+		// fmt.Println("Authorization header:", authHeader)
 		if authHeader == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing Authorization header"})
 			c.Abort()

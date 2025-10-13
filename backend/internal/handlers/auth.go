@@ -37,7 +37,7 @@ func Register(c *gin.Context) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": userID,
 		"role":    "user",
-		"exp":     time.Now().Add(7 * 24 * time.Hour).Unix(),
+		"exp":     time.Now().In(db.Loc).Add(7 * 24 * time.Hour).Unix(),
 	})
 	tokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
@@ -72,7 +72,7 @@ func Login(c *gin.Context) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": id,
 		"role":    role,
-		"exp":     time.Now().Add(7 * 24 * time.Hour).Unix(),
+		"exp":     time.Now().In(db.Loc).Add(7 * 24 * time.Hour).Unix(),
 	})
 	tokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
@@ -82,6 +82,7 @@ func Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"user_id": id, "token": tokenString})
 }
 
+//ยังไม่ได้ืทำ
 // func GoogleLogin(c *gin.Context) {
 // 	var req struct {
 // 		IdToken string `json:"id_token"`

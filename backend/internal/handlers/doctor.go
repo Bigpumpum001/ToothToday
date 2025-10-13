@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"toothtoday/internal/db"
 	"toothtoday/internal/models"
+	"toothtoday/internal/storage"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,6 +23,8 @@ func GetDoctors(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "DB scan error "})
 			return
 		}
+
+		d.ImageURL = storage.GetFileURL(d.ImageURL)
 		doctors = append(doctors, d)
 	}
 	c.JSON(http.StatusOK, doctors)
