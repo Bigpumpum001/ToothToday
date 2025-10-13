@@ -1,10 +1,10 @@
 import React from "react";
-
+import Link from "next/link";
 function Footer() {
   return (
     <footer className="bg-gray-900 text-white py-7">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 gap-8">
           {/* <div>
             <div className="bg-teal-500 text-white px-3 py-1 rounded text-sm font-medium inline-block mb-4">
               ToothToday
@@ -16,28 +16,28 @@ function Footer() {
             </p>
           </div> */}
 
-          <div className="">
+          <div className="text-center md:text-left">
             <h4 className="font-semibold mb-4">บริการ</h4>
             <ul className="space-y-2 text-sm text-gray-400">
               <li>
-                <a href="#" className="hover:text-white">
+                <Link href="/booking" className="hover:text-white">
                   จองคิวออนไลน์
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white">
+                <Link href="/queue" className="hover:text-white">
                   ตรวจสอบคิว
-                </a>
+                </Link>
               </li>
-              <li>
-                <a href="#" className="hover:text-white">
-                  จัดการคิว
-                </a>
-              </li>
+              {/* <li>
+                <Link href="#" className="hover:text-white">
+                  จัดการคิว *soon
+                </Link>
+              </li> */}
             </ul>
           </div>
 
-          <div>
+          {/* <div>
             <h4 className="font-semibold mb-4">สำหรับคลินิก</h4>
             <ul className="space-y-2 text-sm text-gray-400">
               <li>
@@ -56,9 +56,9 @@ function Footer() {
                 </a>
               </li>
             </ul>
-          </div>
+          </div> */}
 
-          <div>
+          <div className="text-center md:text-left">
             <h4 className="font-semibold mb-4">ติดต่อเรา</h4>
             <ul className="space-y-2 text-sm text-gray-400">
               <li>โทร: 02-xxx-xxxx</li>
