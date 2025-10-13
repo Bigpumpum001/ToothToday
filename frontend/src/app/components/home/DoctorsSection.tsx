@@ -33,30 +33,6 @@ function DoctorsSection() {
           </h2>
         </div>
         {loading ? "Doctors is loading ..." : ""}
-        {/* <div className="grid grid-cols sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {doctors
-            ? doctors.slice(0, 3).map((d, index) => (
-                <div
-                  className="flex flex-col items-center justify-center text-center"
-                  key={index}
-                >
-                  <Image
-                    src={d.image_url}
-                    alt=""
-                    width={400}
-                    height={400}
-                    priority
-                    className="rounded-xl mb-4"
-                  />
-
-                  <p className="text-blue-900 text-xl font-semibold mb-2">
-                    {d.name}
-                  </p>
-                  <p className="text-base text-gray-500">{d.specialization}</p>
-                </div>
-              ))
-            : ""}
-        </div> */}
         {/* Desktop / Tablet Grid */}
         <div className="hidden md:grid md:grid-cols-3 gap-8">
           {doctors?.slice(0, 3).map((d, index) => (

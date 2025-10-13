@@ -73,7 +73,7 @@ function BookingForm() {
     const fetchSlotsByService = async () => {
       try {
         const res = await api.get<Slot[]>(
-          `/appointment/slots?serviceId=${selectedService.id}` // date optional
+          `/appointment/slots?serviceId=${selectedService.id}` 
         );
         setAvailableSlots(res.data);
         // console.log(res.data);
@@ -142,7 +142,7 @@ function BookingForm() {
     fetchBookedSlots();
   }, [selectedDate, selectedDoctor]);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const Submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!selectedDate || !selectedSlot || !selectedDoctor || !selectedService) {
       Swal.fire({
@@ -278,7 +278,7 @@ function BookingForm() {
   if (loading) return <p className="text-center mt-10">Loading ...</p>;
   return (
     <>
-      <form onSubmit={handleSubmit} className="flex flex-col items-center  ">
+      <form onSubmit={Submit} className="flex flex-col items-center  ">
         {/* <div className="xl:w-full bg-white pt-6 rounded-t-lg shadow">
             <h1 className="text-blue-900 text-4xl font-semibold text-center">
               จองคิวคลินิกฟัน
@@ -358,7 +358,7 @@ function BookingForm() {
           </div>
 
           <div
-            // onSubmit={handleSubmit}
+            // onSubmit={Submit}
             // className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow space-y-4"
             className="xl:w-full space-y-4 flex flex-col xl:p-5  "
           >
@@ -401,14 +401,6 @@ function BookingForm() {
               <select
                 className="mt-1 p-2 w-full  border border-gray-300  rounded-2xl focus:ring-2 focus:ring-blue-300"
                 value={selectedDoctor?.id ?? ""}
-                // onChange={(e) => setSelectedDoctor(doctors.find((d) => d.id === Number(e.target.value)) || null)}
-                // onChange={(e) => {
-                //   const doc =
-                //     availableDoctors.find(
-                //       (d) => d.id === Number(e.target.value)
-                //     ) || null;
-                //   setSelectedDoctor(doc);
-                // }}
                 onChange={
                   (e) => {
                     const doctorId = Number(e.target.value);
@@ -416,11 +408,6 @@ function BookingForm() {
                       availableDoctors.find((d) => d.id === doctorId) || null;
                     setSelectedDoctor(doctor);
                   }
-                  // setSelectedDoctor(
-                  //   availableDoctors.find(
-                  //     (d) => d.id === Number(e.target.value)
-                  //   ) || null
-                  // )
                 }
                 disabled={!selectedSlot || availableDoctors.length === 0}
               >
@@ -437,11 +424,6 @@ function BookingForm() {
                     {d.Status !== "available" ? "(ไม่ว่าง)" : ""}
                   </option>
                 ))}
-                {/* {doctors.map((d) => (
-                  <option value={d.id} key={d.id}>
-                    {d.name} ({d.specialization})
-                  </option>
-                ))} */}
               </select>
             </div>
 
@@ -471,7 +453,7 @@ function BookingForm() {
                                 : "bg-gray-300 text-gray-500"
                             }
                             `}
-              onClick={handleSubmit}
+              onClick={Submit}
             >
               {!isLoggedIn
                 ? "โปรดล็อคอิน"
@@ -481,9 +463,6 @@ function BookingForm() {
             </button>
           </div>
         </div>
-        {/* <div className="lg:w-1/3 bg-white p-6 rounded-lg shadow space-y-4"> */}
-
-        {/* </div> */}
       </form>
     </>
   );

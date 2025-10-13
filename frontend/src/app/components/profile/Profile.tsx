@@ -157,7 +157,6 @@ function Profile() {
         confirmButtonText: "ตกลง",
         confirmButtonColor: "#22c55e", // สีเขียว
       });
-      // window.location.reload();
     } catch (error) {
       console.error(error);
       Swal.fire({
@@ -188,7 +187,6 @@ function Profile() {
           text: "ยกเลิกคิวเรียบร้อย",
           confirmButtonText: "ตกลง",
         }).then(() => {
-          // รีเฟรชหน้า
           window.location.reload();
         });
       }
@@ -218,9 +216,7 @@ function Profile() {
     const state = btoa(JSON.stringify({ user_id: decoded.user_id }));
     const clientId = process.env.NEXT_PUBLIC_LINE_LOGIN_CHANNEL_ID;
     const redirectUri =
-      process.env.NEXT_PUBLIC_LINE_LOGIN_REDIRECT_URI ||
-      // +`?token=${token}`
-      "";
+      process.env.NEXT_PUBLIC_LINE_LOGIN_REDIRECT_URI || "";
     const encodedRedirectUri = encodeURIComponent(redirectUri);
     window.location.href = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodedRedirectUri}&state=${state}&scope=profile%20openid`;
   };
@@ -249,7 +245,6 @@ function Profile() {
           text: "ยกเลิกการเชื่อมต่อ LINE เรียบร้อยแล้ว",
           confirmButtonText: "ตกลง",
         }).then(() => {
-          // รีเฟรชหน้า
           window.location.reload();
         });
       } else {
@@ -283,7 +278,6 @@ function Profile() {
         Profile
       </h2> */}
       <section className="bg-white mt-3 p-8 rounded-2xl shadow-md w-full max-w-7xl space-y-3 h-[85vh] overflow-y-auto">
-        {/* {profile?.line_picture_url ? ( */}
         <div className="flex items-center justify-center">
           <Image
             src={profile?.line_picture_url ?? "/images/profile/unknown.png"}
@@ -294,9 +288,6 @@ function Profile() {
             className="rounded-full mt-2 "
           />
         </div>
-        {/* ) : (
-          ""
-        )} */}
         {editing ? (
           <div className="flex justify-center ">
             <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:mt-3 space-y-3 text-left ">
@@ -328,7 +319,6 @@ function Profile() {
                   icon={faPhone}
                   className="text-blue-900 pe-4"
                 />
-
                 <input
                   name="phone"
                   value={formData.phone}

@@ -16,7 +16,7 @@ function Header() {
     setIsLoggedIn(!!token);
   }, []);
 
-  const handleLogout = () => {
+  const Logout = () => {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
     window.location.href = "/";
@@ -112,7 +112,7 @@ function Header() {
                 </li>
                 <li>
                   <button
-                    onClick={handleLogout}
+                    onClick={Logout}
                     className="text-blue-900 hover:text-blue-700 text-lg font-semibold"
                   >
                     Logout
@@ -197,7 +197,7 @@ function Header() {
                   </li>
                   <li className="py-2 text-center">
                     <button
-                      onClick={handleLogout}
+                      onClick={Logout}
                       className="text-blue-900 text-lg font-semibold "
                     >
                       Logout

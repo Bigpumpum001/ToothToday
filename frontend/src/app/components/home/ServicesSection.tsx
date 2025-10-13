@@ -23,7 +23,6 @@ function ServicesSection() {
     };
     fetchData();
   }, []);
-  const images = ["/images/blog-1.png"];
   function truncateText(text: string, maxLength: number): string {
     if (!text) return "";
     return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;

@@ -5,7 +5,6 @@ import {
   Service,
   SlotStatus,
 } from "@/app/types/booking";
-import { time } from "console";
 
 interface CalendarProps {
   selectedService?: Service | null;
@@ -75,7 +74,7 @@ function Calendar({
     });
   }
 
-  const handleClickDay = (day: DayAvailability | null) => {
+  const DayClick = (day: DayAvailability | null) => {
     if (!day || !selectedService) return;
     setSelectedDateLocal(day.date);
     onSelectDate(day.date);
@@ -92,7 +91,7 @@ function Calendar({
       case "closed":
         return "closed";
       default:
-        return "closed"; // fallback เป็นปิดทำการ
+        return "closed"; // ปิดทำการ
     }
   };
   const getDayColor = (daystatus: SlotStatus) => {
@@ -174,7 +173,7 @@ function Calendar({
             isSelected ? "ring-2 ring-blue-900" : ""
           } hover:ring-2 hover:ring-blue-300
           `}
-                  onClick={() => handleClickDay(day)}
+                  onClick={() => DayClick(day)}
                   disabled={
                     !selectedService ||
                     getDayStatus(day?.status) === "fully_booked" ||

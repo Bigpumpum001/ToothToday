@@ -3,8 +3,8 @@ import { Slot } from "@/app/types/booking";
 import api from "@/app/lib/api";
 function DoctorSchedule() {
   const today = new Date();
-  // console.log("today",today.toLocaleDateString('en-CA'))
   const todayStr = today.toLocaleDateString("en-CA"); // YYYY-MM-DD
+  // console.log("today",today.toLocaleDateString('en-CA'))
 
   const [date, setDate] = useState(todayStr);
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -15,7 +15,7 @@ function DoctorSchedule() {
       try {
         const res = await api.get(`/appointment/availability/day?date=${d}`);
         setSlots(res.data);
-        // console.log("sl",res.data)
+        // console.log("Slots",res.data)
       } catch (err) {
         console.error(err);
         setSlots([]);

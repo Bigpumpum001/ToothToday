@@ -11,7 +11,7 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
-  const handleSubmit = async (e: FormEvent) => {
+  const Submit = async (e: FormEvent) => {
     e.preventDefault();
     const data = await login({ email, password });
     // console.log(data);
@@ -48,7 +48,7 @@ function Login() {
             />
           </div>
           <div className="space-y-4  flex justify-center  flex-col">
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={Submit} className="space-y-4">
               <div className="">
                 <h2 className="text-3xl font-bold text-blue-900 text-center">
                   Login

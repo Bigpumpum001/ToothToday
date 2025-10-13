@@ -14,7 +14,7 @@ function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const router = useRouter();
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const EmailInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
 
     // ลบตัวอักษรที่ไม่ใช่ ASCII
@@ -22,7 +22,7 @@ function Register() {
 
     setEmail(value);
   };
-  const handleSubmit = async (e: FormEvent) => {
+  const Submit = async (e: FormEvent) => {
     e.preventDefault();
     const isValidEmail = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
     const asciiOnly = /^[\x00-\x7F]+$/;
@@ -59,7 +59,6 @@ function Register() {
     try {
       const data = await register({ name, email, password, phone });
       console.log(data);
-      // if (data.success) {
       Swal.fire({
         icon: "success",
         title: "สมัครสมาชิกสำเร็จ!",
@@ -67,7 +66,6 @@ function Register() {
         confirmButtonText: "ตกลง",
       });
       router.push("/login");
-      // } else alert(data.error || "Register failed");
     } catch (error) {
       console.error("Register error:", error);
       Swal.fire({
@@ -79,61 +77,7 @@ function Register() {
     }
   };
   return (
-    // <div className="min-h-screen flex items-center justify-center bg-blue-50">
-    //   <div className="bg-white p-6 rounded-2xl shadow-md w-96 space-y-4">
-    //     <form
-    //       onSubmit={handleSubmit}
-    //       className="space-y-4"
-    //     >
-    //       <h2 className="text-3xl font-bold text-blue-900 text-center">
-    //         Register
-    //       </h2>
-    //       <input
-    //         type="text"
-    //         placeholder="Name"
-    //         value={name}
-    //         onChange={(e) => setName(e.target.value)}
-    //         className="w-full p-2 border border-gray-300  rounded-2xl"
-    //         required
-    //       />
-    //       <input
-    //         type="email"
-    //         placeholder="Email"
-    //         value={email}
-    //         onChange={(e) => setEmail(e.target.value)}
-    //         className="w-full p-2 border border-gray-300  rounded-2xl"
-    //         required
-    //       />
-    //       <input
-    //         type="phone"
-    //         placeholder="Phone"
-    //         value={phone}
-    //         onChange={(e) => setPhone(e.target.value)}
-    //         className="w-full p-2 border border-gray-300  rounded-2xl"
-    //         required
-    //       />
-    //       <input
-    //         type="password"
-    //         placeholder="Password"
-    //         value={password}
-    //         onChange={(e) => setPassword(e.target.value)}
-    //         className="w-full p-2 border border-gray-300  rounded-2xl"
-    //         required
-    //       />
-    //       <button
-    //         type="submit"
-    //         className="w-full bg-blue-900 text-white p-2 rounded-lg"
-    //       >
-    //         Register
-    //       </button>
-    //     </form>
-    //     <div className="text-center text-gray-700">
-    //       Already have an account? <Link href="/login" className="text-blue-500 hover:underline">Login here</Link>
-    //     </div>
-    //   </div>
-    // </div>
-
-    // แบบ2
+    
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-300 pt-25">
       <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-5xl space-y-6">
         <div className="grid md:grid-cols-2 gap-5">
@@ -157,7 +101,7 @@ function Register() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={Submit} className="space-y-4">
               {/* Name */}
               <div className="relative">
                 <User
@@ -184,7 +128,7 @@ function Register() {
                   type="email"
                   placeholder="Email Address"
                   value={email}
-                  onChange={handleEmailChange}
+                  onChange={EmailInput}
                   className="w-full pl-10 p-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:outline-none"
                   required
                 />
@@ -257,73 +201,6 @@ function Register() {
         </div>
       </div>
     </div>
-
-    // <div className="flex min-h-screen bg-[#0d0f1a] text-white">
-    //   {/* ด้านซ้าย: ข้อความ */}
-    //   <div className="hidden md:flex flex-col justify-center w-1/2 px-12">
-    //     <h2 className="text-4xl font-bold leading-snug">
-    //       Book your <span className="text-blue-400">dental appointment</span>{" "}
-    //       easily.
-    //     </h2>
-    //     <p className="mt-4 text-gray-400">
-    //       Register now and manage your dental queue anytime, anywhere.
-    //     </p>
-    //   </div>
-
-    //   {/* ด้านขวา: ฟอร์ม */}
-    //   <div className="flex items-center justify-center w-full md:w-1/2 p-6">
-    //     <form
-    //       onSubmit={handleSubmit}
-    //       className="bg-[#151823] w-full max-w-md p-8 rounded-2xl shadow-lg"
-    //     >
-    //       <h2 className="text-2xl font-bold mb-6 text-center">
-    //         Create Account
-    //       </h2>
-
-    //       <input
-    //         type="text"
-    //         placeholder="Full Name"
-    //         className="w-full mb-4 p-3 rounded-xl bg-[#1f2233] text-white outline-none focus:ring-2 focus:ring-blue-400"
-    //         value={name}
-    //         onChange={(e) => setName(e.target.value)}
-    //         required
-    //       />
-
-    //       <input
-    //         type="email"
-    //         placeholder="Email"
-    //         className="w-full mb-4 p-3 rounded-xl bg-[#1f2233] text-white outline-none focus:ring-2 focus:ring-blue-400"
-    //         value={email}
-    //         onChange={(e) => setEmail(e.target.value)}
-    //         required
-    //       />
-
-    //       <input
-    //         type="password"
-    //         placeholder="Password"
-    //         className="w-full mb-6 p-3 rounded-xl bg-[#1f2233] text-white outline-none focus:ring-2 focus:ring-blue-400"
-    //         value={password}
-    //         onChange={(e) => setPassword(e.target.value)}
-    //         required
-    //       />
-
-    //       <button
-    //         type="submit"
-
-    //         className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition disabled:opacity-50"
-    //       >
-
-    //       </button>
-
-    //       <p className="text-center mt-4 text-sm text-gray-400">
-    //         Already have an account?{" "}
-    //         <a href="/login" className="text-blue-400 hover:underline">
-    //           Log in
-    //         </a>
-    //       </p>
-    //     </form>
-    //   </div>
-    // </div>
   );
 }
 
