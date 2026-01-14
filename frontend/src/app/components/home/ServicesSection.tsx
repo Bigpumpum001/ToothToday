@@ -3,16 +3,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
-import { ServiceContent } from "@/app/types/booking";
+import { ServiceWithContent } from "@/app/types/booking";
 import api from "@/app/lib/api";
 function ServicesSection() {
-  const [servicesContent, setServicesContent] = useState<ServiceContent[]>([]);
+  const [servicesContent, setServicesContent] = useState<ServiceWithContent[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await api.get("/services-content");
+        const res = await api.get("/services-with-content");
         setServicesContent(res.data);
         // console.log(res.data);
       } catch (error) {
@@ -95,7 +95,7 @@ function ServicesSection() {
                 {s.title}
               </p>
               <p className="text-base text-gray-500 flex-grow">
-                {s.content}
+                {s.short_description}
                 </p>
             </div>
           ))}

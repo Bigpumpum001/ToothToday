@@ -90,7 +90,7 @@ function DoctorSchedule() {
               {slots.map((s: Slot) => (
                 <div className="flex" key={s.time}>
                   <li
-                    className={`mb-3 p-3 border border-gray-400 rounded-2xl flex-grow ${getStatusColor(
+                    className={`mb-3 p-3 border border-gray-400 rounded-lg flex-grow ${getStatusColor(
                       s.status
                     )}`}
                   >

@@ -4,10 +4,11 @@ import {
   MonthAvailability,
   Service,
   SlotStatus,
+  ServiceWithContent
 } from "@/app/types/booking";
 
 interface CalendarProps {
-  selectedService?: Service | null;
+  selectedService?: ServiceWithContent | null;
   onSelectDate: (date: string) => void;
   fetchAvailability: (
     year: number,

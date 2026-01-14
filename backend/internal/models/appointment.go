@@ -12,6 +12,7 @@ type Appointment struct {
 	Note            *string   `json:"note"`
 	ImageURL        *string   `json:"image_url"`
 	DurationMinutes int       // `json:"duration_minutes"`
+	IsDelete        bool      `json:"is_delete"`
 	// return create appointment
 	DoctorName  string `json:"doctor_name"`
 	ServiceName string `json:"service_name"`
@@ -36,4 +37,18 @@ type ProfileAppointment struct {
 	ImageURL    *string `json:"image_url"`
 	Date        string  `json:"date"`
 	IsPast      string  `json:"is_past"`
+	IsDelete    bool    `json:"is_delete"`
+}
+type AppointmentForAdmin struct {
+	ID              int       `json:"id"`
+	UserName        string    `json:"user_name"`
+	DoctorName      string    `json:"doctor_name"`
+	ServiceName     string    `json:"service_name"`
+	TimeRange       string    `json:"time_range"`
+	AppointmentTime time.Time `json:"appointment_time"`
+	Status          string    `json:"status"`
+	Note            *string   `json:"note"`
+	ImageURL        *string   `json:"image_url"`
+	DurationMinutes int       `json:"duration_minutes"`
+	IsDelete        bool      `json:"is_delete"`
 }

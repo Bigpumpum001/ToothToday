@@ -22,7 +22,7 @@ func GetAppointment(c *gin.Context) {
 	rows, err := db.Pool.Query(c, `
 	SELECT id, user_id, doctor_id, service_id, appointment_time, status, note, image_url
 		FROM appointments
-		WHERE user_id=$1
+		WHERE user_id=$1 AND is_delete = false
 	`, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "DB error"})
@@ -113,13 +113,14 @@ func GetBookedSlots(c *gin.Context) {
 	c.JSON(http.StatusOK, slots)
 }
 func getBookedSlotsMap(ctx context.Context, doctorID int, date string) (map[string]bool, error) {
-	// ไม่ใช้ 'pending','confirmed'แล้ว ใช้ booking แทน
+	// ไม่ใช้ 'pending','confirm'แล้ว ใช้ booking แทน
 	rows, err := db.Pool.Query(ctx, `
 	select appointment_time,duration_minutes
 	FROM appointments
 	where doctor_id = $1
 	and date(appointment_time AT TIME ZONE 'Asia/Bangkok') = $2
-	and status in ('pending','confirmed','booking')
+	and status in ('pending','confirm','booking')
+	and is_delete = false
 	order by appointment_time asc
 	`, doctorID, date)
 	if err != nil {
@@ -346,10 +347,18 @@ func DeleteAppointment(c *gin.Context) {
 		end.Hour(), end.Minute(),
 	)
 
+	// Soft delete the appointment (set is_delete = true)
 	result, err := db.Pool.Exec(c, `
-        DELETE FROM appointments 
+        UPDATE appointments 
+        SET is_delete = true, updated_at = NOW()
         WHERE id = $1 AND user_id = $2
     `, id, userID)
+
+	// Hard delete (old)
+	// result, err := db.Pool.Exec(c, `
+	//     DELETE FROM appointments
+	//     WHERE id = $1 AND user_id = $2
+	// `, id, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete appointment"})
 		return
@@ -675,7 +684,7 @@ func generateDaySlots(dateStr string) ([]models.Slot, error) {
 	select distinct d.id, d.name, d.specialization
 	from doctors d
 	join doctor_schedules ds on ds.doctor_id = d.id
-	where ds.day_of_week = $1
+	where ds.day_of_week = $1 and is_delete = false
 	`, weekday)
 	if err != nil {
 		return result, err
@@ -695,7 +704,8 @@ func generateDaySlots(dateStr string) ([]models.Slot, error) {
 	apptRows, err := db.Pool.Query(ctx, `
 	select id, user_id, doctor_id, service_id, appointment_time, status, note, image_url, duration_minutes
 	from appointments
-	where date(appointment_time AT TIME ZONE 'Asia/Bangkok') = $1 and status in ('pending','in_progress','confirmed','booking')
+	where date(appointment_time AT TIME ZONE 'Asia/Bangkok') = $1 and status in ('pending','in_progress','confirm','booking')
+	and is_delete = false
 	order by appointment_time asc
 	`, dateStr)
 

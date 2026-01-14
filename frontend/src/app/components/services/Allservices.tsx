@@ -2,17 +2,17 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
-import { ServiceContent } from "@/app/types/booking";
+import { ServiceWithContent } from "@/app/types/booking";
 import api from "@/app/lib/api";
 
 function Allservices() {
-  const [servicesContent, setServicesContent] = useState<ServiceContent[]>([]);
+  const [servicesContent, setServicesContent] = useState<ServiceWithContent[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await api.get("/services-content");
+        const res = await api.get("/services-with-content");
         setServicesContent(res.data);
         // console.log(res.data);
       } catch (error) {

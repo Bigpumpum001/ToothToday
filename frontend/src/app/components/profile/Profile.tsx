@@ -173,7 +173,7 @@ function Profile() {
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const res = await api.delete(`/appointment/${id}`, {
+      const res = await api.post(`/appointment/${id}/delete`, {}, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -620,7 +620,7 @@ function Profile() {
                                 }`}
                             >
                               {a.status === "pending"
-                                ? "รอยืนยัน"
+                                ? "รอดำเนินการ"
                                 : a.status === "confirm"
                                 ? "ยืนยันแล้ว"
                                 : a.status === "no_show"
@@ -753,7 +753,7 @@ function Profile() {
                                 }`}
                             >
                               {a.status === "pending"
-                                ? "รอยืนยัน"
+                                ? "รอดำเนินการ"
                                 : a.status === "confirm"
                                 ? "ยืนยันแล้ว"
                                 : a.status === "no_show"
