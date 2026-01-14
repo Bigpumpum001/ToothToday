@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func notifyUpcomingAppointments(ctx context.Context, db *pgxpool.Pool) error {
+func NotifyUpcomingAppointments(ctx context.Context, db *pgxpool.Pool) error {
 	loc := time.FixedZone("Bangkok", 7*3600)
 	now := time.Now().In(loc)
 
@@ -27,6 +27,14 @@ func notifyUpcomingAppointments(ctx context.Context, db *pgxpool.Pool) error {
 	}
 
 	for _, cfg := range notifyConfigs {
+		startTime := now.Add(cfg.Before - 1*time.Minute).UTC()
+		endTime := now.Add(cfg.Before + 2*time.Minute).UTC()
+		fmt.Printf("\n[%s]\n", cfg.Message)
+		fmt.Println("start,end", startTime, endTime)
+		fmt.Printf(" Now: %s\n", now.Format(time.RFC3339))
+		fmt.Printf(" Checking appointments between %s and %s (UTC)\n",
+			startTime.Format(time.RFC3339), endTime.Format(time.RFC3339),
+		)
 		rows, err := db.Query(ctx, `
 			SELECT a.id, a.user_id, a.appointment_time, a.duration_minutes,
 			       d.name AS doctor_name, s.name AS service_name
@@ -34,17 +42,14 @@ func notifyUpcomingAppointments(ctx context.Context, db *pgxpool.Pool) error {
 			JOIN doctors d ON a.doctor_id = d.id
 			JOIN services s ON a.service_id = s.id
 			WHERE a.status = 'pending'
-			  AND a.appointment_time AT TIME ZONE 'Asia/Bangkok' >= $1 
-		      AND a.appointment_time AT TIME ZONE 'Asia/Bangkok' < $2
+			  AND a.appointment_time  >= $1 
+		      AND a.appointment_time  < $2
 			  
-		`, now.Add(cfg.Before), now.Add(cfg.Before+time.Minute))
-		// AND a.appointment_time AT TIME ZONE 'Asia/Bangkok' >= $1
-		// AND a.appointment_time AT TIME ZONE 'Asia/Bangkok' < $2 //ใช้ range
+		`, startTime, endTime)
 		// AND a.appointment_time AT TIME ZONE 'Asia/Bangkok' = $1 // มันจะไม่ตรงเพราะ nanosec
 		if err != nil {
 			return err
 		}
-
 		for rows.Next() {
 			var id, userID, dur int
 			var appointmentTime time.Time
@@ -53,7 +58,8 @@ func notifyUpcomingAppointments(ctx context.Context, db *pgxpool.Pool) error {
 			if err := rows.Scan(&id, &userID, &appointmentTime, &dur, &doctorName, &serviceName); err != nil {
 				return err
 			}
-
+			// fmt.Printf("✅ Found appointment: ID=%d, UserID=%d, Time=%s, Duration=%d, Doctor=%s, Service=%s\n",
+			// 	id, userID, appointmentTime.Format(time.RFC3339), dur, doctorName, serviceName)
 			lineID, _ := models.GetLineUserIDByUserID_job(ctx, userID)
 			if lineID == "" {
 				continue
@@ -81,11 +87,12 @@ func notifyUpcomingAppointments(ctx context.Context, db *pgxpool.Pool) error {
 
 		}
 		defer rows.Close()
+
 	}
 
 	return nil
 }
-func markNoShow(ctx context.Context, db *pgxpool.Pool) error {
+func MarkNoShow(ctx context.Context, db *pgxpool.Pool) error {
 	// loc, _ := time.LoadLocation("Asia/Bangkok")
 	loc := time.FixedZone("Bangkok", 7*3600)
 
@@ -151,7 +158,7 @@ func markNoShow(ctx context.Context, db *pgxpool.Pool) error {
 	return nil
 
 }
-func markCompleted(ctx context.Context, db *pgxpool.Pool) error {
+func MarkCompleted(ctx context.Context, db *pgxpool.Pool) error {
 	loc := time.FixedZone("Bangkok", 7*3600)
 	now := time.Now().In(loc)
 	rows, err := db.Query(ctx, `
@@ -214,11 +221,11 @@ func ScheduleNotifyJob(ctx context.Context, db *pgxpool.Pool) {
 		// 	next = next.Add(time.Hour)
 		// }
 		if now.Minute() == 00 && lastHour != now.Hour() {
-			fmt.Printf("[NotifyJob] Running notifyUpcomingAppointments at %v\n", now)
-			if err := notifyUpcomingAppointments(ctx, db); err != nil {
+			fmt.Printf("[NotifyJob] Running NotifyUpcomingAppointments at %v\n", now)
+			if err := NotifyUpcomingAppointments(ctx, db); err != nil {
 				log.Println("Error notifying upcoming appointments:", err)
 			} else {
-				fmt.Printf("[NotifyJob] Completed notifyUpcomingAppointments at %v\n", time.Now().In(loc))
+				fmt.Printf("[NotifyJob] Completed NotifyUpcomingAppointments at %v\n", time.Now().In(loc))
 			}
 			lastHour = now.Hour()
 		}
@@ -247,11 +254,11 @@ func ScheduleNoShowJob(ctx context.Context, db *pgxpool.Pool) {
 		// 	next = next.Add(time.Hour)
 		// }
 		if now.Minute() >= 10 && lastHour != now.Hour() {
-			fmt.Printf("[NoShowJob] Running markNoShow at %v\n", now)
-			if err := markNoShow(ctx, db); err != nil {
+			fmt.Printf("[NoShowJob] Running MarkNoShow at %v\n", now)
+			if err := MarkNoShow(ctx, db); err != nil {
 				log.Println("Error marking No Show:", err)
 			} else {
-				fmt.Printf("[NoShowJob] Completed markNoShow at %v\n", time.Now().In(loc))
+				fmt.Printf("[NoShowJob] Completed MarkNoShow at %v\n", time.Now().In(loc))
 			}
 			lastHour = now.Hour()
 		}
@@ -280,11 +287,11 @@ func ScheduleCompleteJob(ctx context.Context, db *pgxpool.Pool) {
 		// 	next = next.Add(time.Hour)
 		// }
 		if now.Minute() == 00 && lastHour != now.Hour() {
-			fmt.Printf("[CompletedJob] Running markCompleted at %v\n", now)
-			if err := markCompleted(ctx, db); err != nil {
+			fmt.Printf("[CompletedJob] Running MarkCompleted at %v\n", now)
+			if err := MarkCompleted(ctx, db); err != nil {
 				log.Println("Error marking Completed:", err)
 			} else {
-				fmt.Printf("[CompletedJob] Completed markCompleted at %v\n", time.Now().In(loc))
+				fmt.Printf("[CompletedJob] Completed MarkCompleted at %v\n", time.Now().In(loc))
 			}
 			lastHour = now.Hour()
 		}

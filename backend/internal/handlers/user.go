@@ -51,7 +51,7 @@ func GetProfile(c *gin.Context) {
         FROM appointments a
         JOIN doctors d ON a.doctor_id = d.id
         JOIN services s ON a.service_id = s.id
-        WHERE a.user_id=$1
+        WHERE a.user_id=$1 AND a.is_delete = false
         ORDER BY a.appointment_time ASC`,
 		userID,
 	)
@@ -112,7 +112,6 @@ func GetProfile(c *gin.Context) {
 func UpdateProfile(c *gin.Context) {
 	userID := c.GetInt("user_id") // จาก JWT middleware
 	// fmt.Println("userID", userID)
-	// struct สำหรับรับ JSON body
 	var input struct {
 		Name           string `json:"name"`
 		Email          string `json:"email"`

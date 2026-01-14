@@ -7,8 +7,18 @@ type Doctor struct {
 	Schedule       string `json:"schedule"`
 	Status         SlotStatus
 	ImageURL       string `json:"image_url"`
+	IsDelete       bool   `json:"is_delete"`
 	//for schedule
 	Service  string `json:"service"`
 	Duration int    `json:"duration"` // นาที
 	Start    string `json:"start,omitempty"`
+}
+
+type DoctorSchedules struct {
+	ID           int    `json:"id"`
+	DoctorID     int    `json:"doctor_id"`
+	DayOfWeek    int    `json:"day_of_week"`
+	StartTime    string `json:"start_time"`
+	EndTime      string `json:"end_time"`
+	SlotInterval int    `json:"slot_interval"` // นาที
 }
