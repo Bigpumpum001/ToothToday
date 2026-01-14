@@ -2,10 +2,17 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Topbar from "./Topbar";
 import Link from "next/link";
+import { jwtDecode } from "jwt-decode";
 
+type TokenPayload = {
+  exp: number;
+  role: string;
+  user_id: number;
+};
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -14,6 +21,16 @@ function Header() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
+
+    if (token) {
+      try {
+        const decoded: TokenPayload = jwtDecode(token);
+        setIsAdmin(decoded.role === "admin");
+      } catch (err) {
+        console.error("Invalid token", err);
+        setIsAdmin(false);
+      }
+    }
   }, []);
 
   const Logout = () => {
@@ -99,7 +116,7 @@ function Header() {
                 About
               </Link>
             </li>
-            
+
             {isLoggedIn ? (
               <>
                 <li>
@@ -110,6 +127,16 @@ function Header() {
                     Profile
                   </Link>
                 </li>
+                {isAdmin && (
+                  <li>
+                    <Link
+                      href="/dashboard"
+                      className="text-blue-900 hover:text-blue-700 text-lg font-semibold"
+                    >
+                      Panel
+                    </Link>
+                  </li>
+                )}
                 <li>
                   <button
                     onClick={Logout}
@@ -183,8 +210,6 @@ function Header() {
                   About
                 </Link>
               </li>
-              
-
               {isLoggedIn ? (
                 <>
                   <li className="py-2 text-center">
@@ -195,6 +220,16 @@ function Header() {
                       Profile
                     </Link>
                   </li>
+                  {isAdmin && (
+                    <li className="py-2 text-center">
+                      <Link
+                        href="/dashboard"
+                        className="text-blue-900 text-lg font-semibold "
+                      >
+                        Panel
+                      </Link>
+                    </li>
+                  )}
                   <li className="py-2 text-center">
                     <button
                       onClick={Logout}

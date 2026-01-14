@@ -144,7 +144,11 @@ function Register() {
                   type="tel"
                   placeholder="Phone Number"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => {
+                    // กรองเฉพาะตัวเลข 0-9 และจำกัดความยาวสูงสุด 10 หลัก
+                    const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+                    setPhone(value);
+                  }}
                   className="w-full pl-10 p-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:outline-none"
                   required
                 />

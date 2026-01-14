@@ -2,7 +2,7 @@
 import api from "@/app/lib/api";
 import React, { useState, useEffect, FormEvent } from "react";
 import Calendar from "./Calendar";
-import { Doctor, Slot, MonthAvailability, Service } from "@/app/types/booking";
+import { Doctor, Slot, MonthAvailability, Service,ServiceWithContent } from "@/app/types/booking";
 import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 import axios from "axios";
@@ -15,11 +15,11 @@ type TokenPayload = {
 
 function BookingForm() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
+  const [services, setServices] = useState<ServiceWithContent[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedService, setSelectedService] = useState<ServiceWithContent | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(true);
@@ -40,7 +40,7 @@ function BookingForm() {
         setLoading(true);
         const [doctorsRes, servicesRes] = await Promise.all([
           api.get<Doctor[]>("/doctors"),
-          api.get<Service[]>("/services"),
+          api.get<ServiceWithContent[]>("/services-with-content"),
         ]);
 
         setDoctors(doctorsRes.data);
@@ -288,7 +288,7 @@ function BookingForm() {
         <div className="text-center mb-4">
           {!isLoggedIn ? (
             <>
-              <p>
+              <p className="text-xl">
                 โปรดล็อคอินก่อนทำรายการ{" "}
                 <Link
                   href="/login"
@@ -299,11 +299,11 @@ function BookingForm() {
               </p>
             </>
           ) : (
-            <p>รับการแจ้งเตือนผ่านไลน์ <Link
+            <p className="text-xl">รับการแจ้งเตือนผ่านไลน์ <Link
                   href="/profile"
                   className="text-blue-600 hover:underline font-medium"
                 >
-                  คลิกเลย
+                  คลิกเลย!!!
                 </Link></p>
           )}
         </div>

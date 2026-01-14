@@ -46,7 +46,7 @@ function DoctorsSection() {
                 width={400}
                 height={400}
                 priority
-                className="rounded-xl mb-4"
+                className="rounded-xl mb-4 flex-1"
               />
               <p className="text-blue-900 text-xl font-semibold mb-2">
                 {d.name}
