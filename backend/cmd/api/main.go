@@ -112,7 +112,7 @@ func main() {
 	//cronjob
 	r.POST("/cron/notify", handlers.NotifyUpcomingAppointments)
 	r.POST("/cron/complete", handlers.MarkCompleted)
-	r.POST("/cron/noshow", handlers.NotifyUpcomingAppointments)
+	r.POST("/cron/noshow", handlers.MarkNoShow)
 
 	if os.Getenv("GO_ENV") != "production" {
 		go jobs.ScheduleNotifyJob(ctx, db.Pool)
