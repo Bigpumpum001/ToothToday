@@ -383,7 +383,7 @@ function BookingForm() {
                   <option
                     value={slot.time}
                     key={`${slot.time}-${index}`}
-                    disabled={slot.status === "booked" ||slot.status === "passed"}
+                    disabled={slot.status === "booked" ||slot.status === "passed"||slot.status === "unavailable"}
                   >
                     {slot.time}{" "}
                     {/* {slot.status === "booked" ? "(เต็ม)" : ""} */}
@@ -391,6 +391,8 @@ function BookingForm() {
                       ? "(passed)"
                       : slot.status === "booked"
                       ? "(เต็ม)"
+                      : slot.status === "unavailable"
+                      ? "(เวลาไม่พอ)"
                       : ""}
                   </option>
                 ))}

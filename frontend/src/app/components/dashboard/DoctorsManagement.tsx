@@ -100,7 +100,7 @@ export default function DoctorsManagement() {
       if (file) {
         formData.append("file", file);
       }
-      console.log("doctorForm", doctorForm);
+      // console.log("doctorForm", doctorForm);
       if (editingDoctor) {
         await api.put(`/doctors/${editingDoctor.id}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
@@ -134,9 +134,9 @@ export default function DoctorsManagement() {
         Swal.fire("ผิดพลาด", "กรุณากรอกข้อมูลให้ครบถ้วน", "error");
         return;
       }
-      console.log("scheduleForm", startTime);
-      console.log("scheduleForm", endTime);
-      console.log("tt", Number(startTime) - Number(endTime));
+      // console.log("scheduleForm", startTime);
+      // console.log("scheduleForm", endTime);
+      // console.log("tt", Number(startTime) - Number(endTime));
 
       // Check if start time is before or equal to end time
       if (Number(startTime) >= Number(endTime)) {
@@ -169,7 +169,7 @@ export default function DoctorsManagement() {
         end_time: endTime,
         slot_interval: parseInt(scheduleForm.slot_interval),
       };
-      console.log("scheduleData", scheduleData);
+      // console.log("scheduleData", scheduleData);
       if (editingSchedule) {
         await api.put(
           `/doctors/schedules/${editingSchedule.id}`,

@@ -173,7 +173,9 @@ function Profile() {
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const res = await api.post(`/appointment/${id}/delete`, {}, {
+      const res = await api.delete(`/appointment/${id}/delete`, 
+        //{}, ถ้า post ต้องใส่
+         {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

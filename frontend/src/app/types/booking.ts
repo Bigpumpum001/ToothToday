@@ -35,7 +35,7 @@ export interface ServiceWithContent {
   content: string;
   image_url: string;
 }
-export type SlotStatus = 'available' | 'fully_booked' | 'nearly_full' | 'pending' | 'booked' | 'blocked' | 'no_show' | 'closed' | 'passed';
+export type SlotStatus = 'available' |'unavailable' | 'fully_booked' | 'nearly_full' | 'pending' | 'booked' | 'blocked' | 'no_show' | 'closed' | 'passed';
 
 export interface Slot {
     time: string;
