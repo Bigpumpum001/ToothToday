@@ -89,18 +89,17 @@ func main() {
 	//appointment
 	r.GET("/api/appointment", handlers.GetAppointment)
 	r.POST("/api/appointment/book", handlers.CreateAppointment)
-	r.POST("/api/appointment/:id/delete", middleware.AuthMiddleware(), handlers.DeleteAppointment)
+	r.DELETE("/api/appointment/:id/delete", middleware.AuthMiddleware(), handlers.DeleteAppointment) //SOFT ใช้ POST
 	r.GET("/api/appointment/slots", handlers.GetDoctorSlots)
 	r.GET("/api/appointment/booked", handlers.GetBookedSlots)
 	r.GET("/api/appointment/availability", handlers.GetMonthAvailability)
+	r.GET("/api/appointment/availability/day", handlers.GetDayAvailability)
+
 	// appointment for admin
 	r.GET("/api/appointments", middleware.AuthMiddleware(), handlers.GetAppointmentsForAdmin)
 	r.PUT("/api/appointments/:id", middleware.AuthMiddleware(), handlers.UpdateAppointmentStatus)
-	r.POST("/api/appointments/:id/delete", middleware.AuthMiddleware(), handlers.DeleteAppointmentForAdmin)
+	r.DELETE("/api/appointments/:id/delete", middleware.AuthMiddleware(), handlers.DeleteAppointmentForAdmin) //SOFT ใช้ POST
 	// r.DELETE("/api/appointment/:id", middleware.AuthMiddleware(), handlers.DeleteAppointmentByIDForAdmin) //admin
-
-	//doctor schedule
-	r.GET("/api/appointment/availability/day", handlers.GetDayAvailability)
 	r.GET("/api/appointment/slot/day", middleware.AuthMiddleware(), handlers.GetAppointmentForAdmin) //admin
 
 	//line

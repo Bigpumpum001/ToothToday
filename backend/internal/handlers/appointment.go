@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"sort"
 	"strconv"
@@ -22,7 +23,7 @@ func GetAppointment(c *gin.Context) {
 	rows, err := db.Pool.Query(c, `
 	SELECT id, user_id, doctor_id, service_id, appointment_time, status, note, image_url
 		FROM appointments
-		WHERE user_id=$1 AND is_delete = false
+		WHERE user_id=$1
 	`, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "DB error"})
@@ -79,7 +80,7 @@ func GetDoctorSlots(c *gin.Context) {
 	// 	}
 	// 	slots = generateSlotsForDoctor(doctorID, date, service.Duration_minutes)
 	case date != "":
-		slots = generateSlotsForAllDoctor(date, service.Duration_minutes)
+		slots = generateSlotsByDate(date, service.Duration_minutes)
 	default:
 		defaultDate := time.Now().In(db.Loc).Format("2006-01-02")
 		slots = generateSlotsForAllDoctor(defaultDate, service.Duration_minutes)
@@ -120,7 +121,6 @@ func getBookedSlotsMap(ctx context.Context, doctorID int, date string) (map[stri
 	where doctor_id = $1
 	and date(appointment_time AT TIME ZONE 'Asia/Bangkok') = $2
 	and status in ('pending','confirm','booking')
-	and is_delete = false
 	order by appointment_time asc
 	`, doctorID, date)
 	if err != nil {
@@ -138,7 +138,7 @@ func getBookedSlotsMap(ctx context.Context, doctorID int, date string) (map[stri
 		for i := 0; i < slotsToBlock; i++ {
 			// fmt.Println("slotsToBlock", slotsToBlock)
 			slotTime := t.In(db.Loc).Add(time.Duration(i) * time.Hour).Format("15:04")
-			// fmt.Printf("DEBUG book slot > %s\n (duration %d)", slotTime, durationMinutes)
+			fmt.Printf("DEBUG: Blocking slot %s (duration %d min)\n", slotTime, durationMinutes)
 			slotMap[slotTime] = true
 		}
 	}
@@ -348,17 +348,17 @@ func DeleteAppointment(c *gin.Context) {
 	)
 
 	// Soft delete the appointment (set is_delete = true)
-	result, err := db.Pool.Exec(c, `
-        UPDATE appointments 
-        SET is_delete = true, updated_at = NOW()
-        WHERE id = $1 AND user_id = $2
-    `, id, userID)
-
-	// Hard delete (old)
 	// result, err := db.Pool.Exec(c, `
-	//     DELETE FROM appointments
+	//     UPDATE appointments
+	//     SET is_delete = true, updated_at = NOW()
 	//     WHERE id = $1 AND user_id = $2
 	// `, id, userID)
+
+	// Hard delete (old)
+	result, err := db.Pool.Exec(c, `
+	    DELETE FROM appointments
+	    WHERE id = $1 AND user_id = $2
+	`, id, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete appointment"})
 		return
@@ -490,12 +490,15 @@ func generateMonthAvailability(year int, monthInt int) models.MonthAvailability 
 }
 
 func generateSlotsForAllDoctor(dateStr string, duration_minutes int) []models.Slot {
+	// fmt.Printf("=== GENERATING SLOTS FOR DATE: %s ===\n", dateStr)
 	var slots []models.Slot
 	date, err := time.Parse("2006-01-02", dateStr)
 	if err != nil {
+		// fmt.Printf("ERROR: Invalid date format: %s\n", dateStr)
 		return slots
 	}
 	dayOfWeek := int(date.Weekday())
+	// fmt.Printf("Day of week: %d (%s)\n", dayOfWeek, date.Weekday().String())
 	rows, err := db.Pool.Query(context.Background(), `
 	select ds.doctor_id, ds.start_time, ds.end_time, ds.slot_interval , d.name, d.specialization
 	from doctor_schedules ds
@@ -524,6 +527,7 @@ func generateSlotsForAllDoctor(dateStr string, duration_minutes int) []models.Sl
 		}
 
 		bookedMap, _ := getBookedSlotsMap(context.Background(), s.DoctorID, dateStr)
+		// fmt.Println("bookedMap", bookedMap)
 		now := time.Now().In(db.Loc)
 		today := now.Truncate(24 * time.Hour)
 		// fmt.Println("now", now)
@@ -546,6 +550,8 @@ func generateSlotsForAllDoctor(dateStr string, duration_minutes int) []models.Sl
 			// fmt.Println("slotEnd", slotEnd)
 			if date.Equal(today) && (slotEnd.Before(now) || slotEnd.Equal(now)) {
 				status = models.Passed
+				// fmt.Println("Mark slot", timeStr, "slotEnd", slotEnd, "now", now, "status", status)
+
 			}
 			// fmt.Println("Slot", timeStr, "slotEnd", slotEnd, "now", now, "status", status)
 
@@ -582,6 +588,7 @@ func generateSlotsForAllDoctor(dateStr string, duration_minutes int) []models.Sl
 	}
 
 	//debug
+	// fmt.Println("=== INITIALIZING SLOTS ===")
 	// for _, s := range slots {
 	// 	fmt.Println("Slot", s.Time, "Status", s.Status)
 	// 	for _, d := range s.Doctors {
@@ -618,6 +625,7 @@ func generateSlotsForAllDoctor(dateStr string, duration_minutes int) []models.Sl
 		for j := 0; j < slotsNeeded; j++ {
 			if i+j >= len(slots) {
 				canBook = false
+				// fmt.Printf("DEBUG: Slot %s Can book cuz: i+j >= len(slots)", slots[i].Time)
 				break
 			}
 			// ถ้ามีหมอว่างใน slot i+j อย่างน้อยหนึ่งคน -> ถือว่ายังจองได้
@@ -631,14 +639,22 @@ func generateSlotsForAllDoctor(dateStr string, duration_minutes int) []models.Sl
 			if !doctorAvailable {
 				// || slots[i+j].Status == models.Passed {
 				canBook = false
+				// fmt.Printf("DEBUG: Slot %s Can book cuz: !doctorAvailable", slots[i].Time)
+
 				break
 			}
 		}
 		if !canBook {
-			// fmt.Println("Slot", slots[i].Time, "set to BOOKED")
+			// fmt.Printf("DEBUG: Slot %s marked as BOOKED - insufficient consecutive slots (need %d hours)\n", slots[i].Time, slotsNeeded)
+			// fmt.Printf("DEBUG: Slot %s doctors statuses: ", slots[i].Time)
+			// for _, d := range slots[i].Doctors {
+			// 	fmt.Printf("%s(%s) ", d.Name, d.Status)
+			// }
+			// fmt.Println()
 			// slots[i].Status = models.Booked
 			if slots[i].Status != models.Passed {
-				slots[i].Status = models.Booked
+				slots[i].Status = models.Unavailable // เปลี่ยนเป็น Unavailable
+				// fmt.Printf("DEBUG: Slot %s Mark to Unavailable: ", slots[i].Time)
 			}
 
 		}
@@ -650,6 +666,288 @@ func generateSlotsForAllDoctor(dateStr string, duration_minutes int) []models.Sl
 	})
 
 	return slots
+}
+
+// generateSlotsByDate สร้าง slots สำหรับวันที่ต้องการ
+// Logic แยกเป็นส่วนๆ เพื่อความชัดเจน:
+// 1. ดึงข้อมูล doctor schedules สำหรับวันนั้น (dayOfWeek)
+// 2. สร้าง slots ตาม schedule ที่ได้
+// 3. ดึง booked slots สำหรับวันนั้นและหมอแต่ละคน
+// 4.  mark slots ตามการจอง
+// 5. ตรวจสอบว่ามีเวลาพอทำบริการหรือไม่
+func generateSlotsByDate(dateStr string, durationMinutes int) []models.Slot {
+	fmt.Printf("=== GENERATING SLOTS FOR DATE: %s (Service: %d min) ===\n", dateStr, durationMinutes)
+
+	// 1. แปลง date string และหา dayOfWeek
+	date, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		fmt.Printf("ERROR: Invalid date format: %s\n", dateStr)
+		return []models.Slot{}
+	}
+	dayOfWeek := int(date.Weekday())
+	fmt.Printf("Processing %s (Day %d: %s)\n", dateStr, dayOfWeek, date.Weekday().String())
+
+	// 2. ดึง doctor schedules สำหรับวันนั้น
+	rows, err := db.Pool.Query(context.Background(), `
+		SELECT ds.doctor_id, ds.start_time, ds.end_time, ds.slot_interval, d.name, d.specialization
+		FROM doctor_schedules ds
+		JOIN doctors d ON ds.doctor_id = d.id
+		WHERE ds.day_of_week = $1
+	`, dayOfWeek)
+	if err != nil {
+		fmt.Printf("ERROR: Failed to query doctor schedules: %v\n", err)
+		return []models.Slot{}
+	}
+	defer rows.Close()
+
+	// 3. เก็บข้อมูล schedules ไว้
+	type DoctorSchedule struct {
+		DoctorID       int
+		StartTime      time.Time
+		EndTime        time.Time
+		SlotInterval   int
+		DoctorName     string
+		Specialization string
+	}
+
+	var schedules []DoctorSchedule
+	for rows.Next() {
+		var s DoctorSchedule
+		if err := rows.Scan(&s.DoctorID, &s.StartTime, &s.EndTime, &s.SlotInterval, &s.DoctorName, &s.Specialization); err != nil {
+			fmt.Printf("ERROR: Failed to scan schedule: %v\n", err)
+			continue
+		}
+		if s.SlotInterval <= 0 {
+			s.SlotInterval = 60 // default 60 minutes
+		}
+		schedules = append(schedules, s)
+		fmt.Printf("Doctor %d (%s) works %s-%s every %d min\n",
+			s.DoctorID, s.DoctorName,
+			s.StartTime.Format("15:04"), s.EndTime.Format("15:04"),
+			s.SlotInterval)
+	}
+
+	// 4. สร้าง slot map สำหรับรวมข้อมูลตามเวลา
+	slotMap := make(map[string]*models.Slot)
+
+	// 5. สำหรับแต่ละ doctor schedule
+	for _, schedule := range schedules {
+		fmt.Printf("\n--- Processing Doctor %d (%s) ---\n", schedule.DoctorID, schedule.DoctorName)
+
+		// 5.1 ดึง booked slots สำหรับหมอคนนี้ในวันนี้
+		bookedMap, err := getBookedSlotsMap(context.Background(), schedule.DoctorID, dateStr)
+		if err != nil {
+			fmt.Printf("ERROR: Failed to get booked slots for doctor %d: %v\n", schedule.DoctorID, err)
+			bookedMap = make(map[string]bool) // ใช้ empty map ถ้า error
+		}
+		fmt.Printf("Booked slots for doctor %d: %v\n", schedule.DoctorID, getBookedSlotTimes(bookedMap))
+
+		// 5.2 สร้าง slots ตาม working hours
+		startTime := time.Date(date.Year(), date.Month(), date.Day(),
+			schedule.StartTime.Hour(), schedule.StartTime.Minute(), 0, 0, db.Loc)
+		endTime := time.Date(date.Year(), date.Month(), date.Day(),
+			schedule.EndTime.Hour(), schedule.EndTime.Minute(), 0, 0, db.Loc)
+
+		fmt.Printf("Generating slots from %s to %s\n",
+			startTime.Format("15:04"), endTime.Format("15:04"))
+
+		// สร้าง slot ทุกชั่วโมงตาม interval
+		for slotTime := startTime; slotTime.Before(endTime); slotTime = slotTime.Add(time.Duration(schedule.SlotInterval) * time.Minute) {
+			timeStr := slotTime.Format("15:04")
+
+			// 5.3 กำหนด status ของ doctor ก่อน
+			doctorStatus := models.Available
+			if bookedMap[timeStr] {
+				doctorStatus = models.Booked
+				fmt.Printf("  Doctor %s: BOOKED (found in bookedMap)\n", timeStr)
+			}
+
+			// 5.4 ตรวจสอบว่าเวลาผ่านไปแล้วหรือไม่ (สำหรับวันนี้)
+			now := time.Now().In(db.Loc)
+			today := now.Truncate(24 * time.Hour)
+			if date.Equal(today) && slotTime.Before(now) {
+				doctorStatus = models.Passed
+				fmt.Printf("  Doctor %s: PASSED (time already passed)\n", timeStr)
+			} else if doctorStatus == models.Available {
+				fmt.Printf("  Doctor %s: AVAILABLE\n", timeStr)
+			}
+
+			// 5.5 สร้าง doctor object
+			doctor := models.Doctor{
+				ID:             schedule.DoctorID,
+				Name:           schedule.DoctorName,
+				Specialization: schedule.Specialization,
+				Status:         doctorStatus,
+			}
+
+			// 5.6 เพิ่ม slot ลง map (รวม doctors ที่เวลาเดียวกัน)
+			if _, exists := slotMap[timeStr]; !exists {
+				slotMap[timeStr] = &models.Slot{
+					Time:     timeStr,
+					Duration: durationMinutes,
+					Status:   models.Available, // จะถูก update ทีหลัง
+					Doctors:  []models.Doctor{},
+				}
+			}
+			slotMap[timeStr].Doctors = append(slotMap[timeStr].Doctors, doctor)
+		}
+	}
+
+	// 6. แปลง map เป็น slice และ sort
+	var slots []models.Slot
+	for _, slot := range slotMap {
+		slots = append(slots, *slot)
+	}
+	sort.Slice(slots, func(i, j int) bool {
+		return slots[i].Time < slots[j].Time
+	})
+
+	// 7. ตรวจสอบ consecutive slots สำหรับบริการที่ต้องการ durationMinutes
+	fmt.Printf("\n=== CHECKING CONSECUTIVE SLOTS (need %d hours) ===\n", (durationMinutes+59)/60)
+	slotsNeeded := (durationMinutes + 59) / 60
+
+	//mark status
+	for i := 0; i < len(slots); i++ {
+		slot := &slots[i]
+
+		// 7.1 ไม่ข้าม slot ที่มี doctor booked - ต้องตรวจสอบว่า doctor คนอื่นว่างติดต่อกันหรือไม่
+
+		// 7.2 ตรวจสอบว่ามี doctor ว่างใน slot นี้หรือไม่
+		hasAvailableDoctor := false
+		for _, doctor := range slot.Doctors {
+			if doctor.Status == models.Available {
+				hasAvailableDoctor = true
+				break
+			}
+		}
+
+		if !hasAvailableDoctor {
+			continue // ไม่มีหมอว่างเลย ข้าม
+		}
+
+		// 7.3 ตรวจสอบว่ามี doctor คนใดคนหนึ่งว่างติดต่อกันพอทำบริการหรือไม่
+		canBookService := false
+
+		// ตรวจสอบแต่ละ doctor ใน slot ปัจจุบัน
+		for _, currentDoctor := range slot.Doctors {
+			if currentDoctor.Status != models.Available {
+				continue // ข้าม doctor ที่ไม่ว่าง
+			}
+
+			// ตรวจสอบว่า doctor คนนี้ว่างติดต่อกันในทุก slot ที่ต้องการ
+			doctorAvailableInAllSlots := true
+			for j := 0; j < slotsNeeded; j++ {
+				if i+j >= len(slots) {
+					fmt.Printf("Doctor %d: CANNOT BOOK - not enough slots\n", currentDoctor.ID)
+					doctorAvailableInAllSlots = false
+					break
+				}
+
+				// หา doctor คนเดียวกันใน slot ถัดไป
+				checkSlot := &slots[i+j]
+				foundDoctorInSlot := false
+				for _, doctorInSlot := range checkSlot.Doctors {
+					if doctorInSlot.ID == currentDoctor.ID {
+						if doctorInSlot.Status == models.Available {
+							foundDoctorInSlot = true
+						}
+						break // หา doctor คนนี้แล้ว ไม่ว่าจะ available หรือไม่
+					}
+				}
+
+				// ถ้าไม่เจอ doctor คนนี้ใน slot เลย แสดงว่าไม่ทำงานในเวลานั้น
+				if !foundDoctorInSlot {
+					fmt.Printf("Doctor %d: CANNOT BOOK - not found in slot %s (doctor not working)\n", currentDoctor.ID, checkSlot.Time)
+					fmt.Printf("  Available doctors in slot %s: ", checkSlot.Time)
+					for _, doc := range checkSlot.Doctors {
+						fmt.Printf("ID:%d Status:%s ", doc.ID, doc.Status)
+					}
+					fmt.Println()
+					doctorAvailableInAllSlots = false
+					break
+				}
+			}
+
+			if doctorAvailableInAllSlots {
+				fmt.Printf("Doctor %d: CAN BOOK - available in all required slots\n", currentDoctor.ID)
+				canBookService = true
+				break // พบ doctor ที่ว่างติดต่อกันแล้ว
+			}
+		}
+
+		// 7.4 ถ้าไม่สามารถทำบริการได้ ให้ mark เป็น unavailable
+		if !canBookService {
+			slot.Status = models.Unavailable
+			// อัปเดต status ของ doctor ที่ไม่สามารถจองได้
+			// for i := range slot.Doctors {
+			// 	if slot.Doctors[i].Status == models.Available {
+			// 		slot.Doctors[i].Status = models.Unavailable
+			// 	}
+			// }
+			fmt.Printf("Slot %s: MARKED UNAVAILABLE\n", slot.Time)
+		} else {
+			fmt.Printf("Slot %s: REMAINS AVAILABLE\n", slot.Time)
+		}
+	}
+
+	// 8. Update slot status based on doctors' status
+	for i := range slots {
+		slot := &slots[i]
+
+		// ถ้า slot ถูก mark เป็น unavailable จาก consecutive slots check ให้คงไว้
+		if slot.Status == models.Unavailable {
+			continue
+		}
+
+		// ตรวจสอบสถานะของ doctors
+		hasAvailableDoctor := false
+		hasPassedDoctor := false
+		allDoctorsBooked := true
+
+		for _, doctor := range slot.Doctors {
+			if doctor.Status == models.Available {
+				hasAvailableDoctor = true
+				allDoctorsBooked = false
+			}
+			if doctor.Status == models.Passed {
+				hasPassedDoctor = true
+				allDoctorsBooked = false
+			}
+			if doctor.Status != models.Booked {
+				allDoctorsBooked = false
+			}
+		}
+
+		// Logic ใหม่:
+		// - ถ้ามี doctor ว่างอย่างน้อย 1 คน → available
+		// - ถ้าทุก doctor booked → booked
+		// - ถ้าทุก doctor passed → passed
+		if hasAvailableDoctor {
+			slot.Status = models.Available
+		} else if allDoctorsBooked {
+			slot.Status = models.Booked
+		} else if hasPassedDoctor {
+			slot.Status = models.Passed
+		}
+	}
+
+	// 9. Final result
+	fmt.Printf("\n=== FINAL RESULT (%d slots) ===\n", len(slots))
+	for _, slot := range slots {
+		fmt.Printf("  %s: %s (%d doctors)\n", slot.Time, slot.Status, len(slot.Doctors))
+	}
+
+	return slots
+}
+
+// helper function แสดง booked slot times
+func getBookedSlotTimes(bookedMap map[string]bool) []string {
+	var times []string
+	for timeStr := range bookedMap {
+		times = append(times, timeStr)
+	}
+	sort.Strings(times)
+	return times
 }
 
 // GET /api/appointment/availability/day?date=YYYY-MM-DD
@@ -684,7 +982,7 @@ func generateDaySlots(dateStr string) ([]models.Slot, error) {
 	select distinct d.id, d.name, d.specialization
 	from doctors d
 	join doctor_schedules ds on ds.doctor_id = d.id
-	where ds.day_of_week = $1 and is_delete = false
+	where ds.day_of_week = $1
 	`, weekday)
 	if err != nil {
 		return result, err
@@ -705,7 +1003,6 @@ func generateDaySlots(dateStr string) ([]models.Slot, error) {
 	select id, user_id, doctor_id, service_id, appointment_time, status, note, image_url, duration_minutes
 	from appointments
 	where date(appointment_time AT TIME ZONE 'Asia/Bangkok') = $1 and status in ('pending','in_progress','confirm','booking')
-	and is_delete = false
 	order by appointment_time asc
 	`, dateStr)
 
@@ -781,6 +1078,370 @@ func generateDaySlots(dateStr string) ([]models.Slot, error) {
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].Time < result[j].Time })
 	return result, nil
+}
+
+// GetAppointmentsForAdmin ดึงข้อมูลคิวสำหรับ admin พร้อมข้อมูลเพิ่มเติม
+func GetAppointmentsForAdmin(c *gin.Context) {
+	dateStr := c.Query("date")
+	if dateStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Date parameter is required"})
+		return
+	}
+
+	date, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format"})
+		return
+	}
+
+	// Query ดึงข้อมูลคิวพร้อมข้อมูลผู้ใช้ แพทย์ และบริการ
+	query := `
+		SELECT 
+			a.id,
+			a.user_id,
+			u.name as user_name,
+			a.doctor_id,
+			d.name as doctor_name,
+			a.service_id,
+			s.name as service_name,
+			s.duration_minutes,
+			a.appointment_time,
+			a.status,
+			a.note,
+			a.image_url
+		FROM appointments a
+		LEFT JOIN users u ON a.user_id = u.id
+		LEFT JOIN doctors d ON a.doctor_id = d.id
+		LEFT JOIN services s ON a.service_id = s.id
+		WHERE DATE(a.appointment_time) = $1
+		ORDER BY a.appointment_time ASC
+	`
+
+	rows, err := db.Pool.Query(c, query, date)
+	if err != nil {
+		log.Printf("Error fetching appointments: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch appointments"})
+		return
+	}
+	defer rows.Close()
+
+	var appointments []models.AppointmentForAdmin
+	for rows.Next() {
+		var (
+			id, userID, doctorID, serviceID                   int
+			userName, doctorName, serviceName, note, imageURL string
+			status                                            string
+			appointmentTime                                   time.Time
+			durationMinutes                                   int
+		)
+
+		err := rows.Scan(
+			&id, &userID, &userName, &doctorID, &doctorName,
+			&serviceID, &serviceName, &durationMinutes,
+			&appointmentTime, &status, &note, &imageURL,
+		)
+		if err != nil {
+			log.Printf("Error scanning appointment row: %v", err)
+			continue
+		}
+
+		// Calculate end time
+		endTime := appointmentTime.Add(time.Duration(durationMinutes) * time.Minute)
+		timeRange := fmt.Sprintf("%s - %s",
+			appointmentTime.In(db.Loc).Format("15:04"),
+			endTime.In(db.Loc).Format("15:04"))
+
+		appointment := models.AppointmentForAdmin{
+			ID:              id,
+			UserName:        userName,
+			DoctorName:      doctorName,
+			ServiceName:     serviceName,
+			AppointmentTime: appointmentTime,
+			TimeRange:       timeRange,
+			DurationMinutes: durationMinutes,
+			Status:          status,
+			Note:            &note,
+			ImageURL:        &imageURL,
+		}
+
+		appointments = append(appointments, appointment)
+	}
+
+	c.JSON(http.StatusOK, appointments)
+}
+
+// UpdateAppointmentStatus อัปเดตสถานะคิว
+func UpdateAppointmentStatus(c *gin.Context) {
+	appointmentIDStr := c.Param("id")
+	appointmentID, err := strconv.Atoi(appointmentIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid appointment ID"})
+		return
+	}
+
+	var req struct {
+		Status string `json:"status" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// ตรวจสอบค่าสถานะที่อนุญาต
+	validStatuses := map[string]bool{
+		"pending":     true,
+		"confirm":     true,
+		"in_progress": true,
+		"complete":    true,
+		// "cancelled":   true,
+		"no_show": true,
+	}
+
+	if !validStatuses[req.Status] {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid status"})
+		return
+	}
+
+	// อัปเดตสถานะ
+	query := "UPDATE appointments SET status = $1, updated_at = NOW() WHERE id = $2"
+	result, err := db.Pool.Exec(c, query, req.Status, appointmentID)
+	if err != nil {
+		log.Printf("Error updating appointment status: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update status"})
+		return
+	}
+
+	rowsAffected := result.RowsAffected()
+
+	if rowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Appointment not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Status updated successfully"})
+}
+
+// DeleteAppointmentForAdmin ลบคิวสำหรับ admin
+func DeleteAppointmentForAdmin(c *gin.Context) {
+	appointmentIDStr := c.Param("id")
+	appointmentID, err := strconv.Atoi(appointmentIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid appointment ID"})
+		return
+	}
+
+	// ตรวจสอบว่ามีคิวอยู่จริงหรือไม่
+	var exists bool
+	checkQuery := "SELECT EXISTS(SELECT 1 FROM appointments WHERE id = $1)"
+	err = db.Pool.QueryRow(c, checkQuery, appointmentID).Scan(&exists)
+	if err != nil {
+		log.Printf("Error checking appointment existence: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check appointment"})
+		return
+	}
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Appointment not found"})
+		return
+	}
+
+	// Soft delete the appointment (set is_delete = true)
+	// deleteQuery := "UPDATE appointments SET is_delete = true, updated_at = NOW() WHERE id = $1"
+	// Hard delete
+	deleteQuery := "DELETE FROM appointments WHERE id = $1"
+
+	result, err := db.Pool.Exec(c, deleteQuery, appointmentID)
+	if err != nil {
+		log.Printf("Error deleting appointment: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete appointment"})
+		return
+	}
+
+	rowsAffected := result.RowsAffected()
+	if err != nil {
+		log.Printf("Error getting rows affected: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete appointment"})
+		return
+	}
+
+	if rowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Appointment not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Appointment deleted successfully"})
+}
+
+// GET /api/appointment/availability/day?date=YYYY-MM-DD
+func GetAppointmentForAdmin(c *gin.Context) {
+	dateStr := c.Query("date")
+
+	//row นึง ชื่อคนไข้, ชือหมอ, ชื่อ service, เวลาจอง - เวลาสิ้นสุด (+จาก duration_minute) ,image_url,ละก็ status (real จาก appointments)
+
+	if dateStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "date is required"})
+		return
+	}
+
+	// Query to get appointments with all required information
+	query := `
+		SELECT 
+			a.id,
+			u.name as user_name,
+			d.name as doctor_name,
+			s.name as service_name,
+			a.appointment_time,
+			a.status,
+			a.note,
+			a.image_url,
+			a.duration_minutes
+		FROM appointments a
+		JOIN doctors d ON d.id = a.doctor_id
+		JOIN services s ON s.id = a.service_id
+		JOIN users u ON u.id = a.user_id
+		WHERE DATE(a.appointment_time AT TIME ZONE 'Asia/Bangkok') = $1
+		ORDER BY a.appointment_time ASC
+	`
+
+	rows, err := db.Pool.Query(c, query, dateStr)
+	if err != nil {
+		log.Printf("Error fetching appointments: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch appointments"})
+		return
+	}
+	defer rows.Close()
+
+	var appointments []models.AppointmentForAdmin
+	for rows.Next() {
+		var (
+			id, durationMinutes               int
+			userName, doctorName, serviceName string
+			status, note, imageURL            string
+			appointmentTime                   time.Time
+		)
+
+		err := rows.Scan(
+			&id, &userName, &doctorName, &serviceName,
+			&appointmentTime, &status, &note, &imageURL, &durationMinutes,
+		)
+		if err != nil {
+			log.Printf("Error scanning appointment row: %v", err)
+			continue
+		}
+
+		// Calculate end time
+		endTime := appointmentTime.Add(time.Duration(durationMinutes) * time.Minute)
+		timeRange := fmt.Sprintf("%s - %s",
+			appointmentTime.Format("15:04"),
+			endTime.Format("15:04"))
+
+		appointment := models.AppointmentForAdmin{
+			ID:              id,
+			UserName:        userName,
+			DoctorName:      doctorName,
+			ServiceName:     serviceName,
+			AppointmentTime: appointmentTime,
+			TimeRange:       timeRange,
+			DurationMinutes: durationMinutes,
+			Status:          status,
+			Note:            &note,
+			ImageURL:        &imageURL,
+		}
+
+		appointments = append(appointments, appointment)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"date":         dateStr,
+		"appointments": appointments,
+	})
+}
+
+func EditAppointmentStatus(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid appointment ID"})
+		return
+	}
+
+	var req struct {
+		Status string `json:"status" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// ตรวจสอบค่าสถานะที่อนุญาต
+	validStatuses := map[string]bool{
+		"pending":     true,
+		"confirm":     true,
+		"in_progress": true,
+		"complete":    true,
+		"cancelled":   true,
+		"no_show":     true,
+	}
+
+	if !validStatuses[req.Status] {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid status"})
+		return
+	}
+
+	// อัปเดตข้อมูล
+	query := `
+		UPDATE appointments 
+		SET status = COALESCE(NULLIF($1, ''), status),
+			updated_at = NOW()
+		WHERE id = $2
+	`
+
+	result, err := db.Pool.Exec(c, query, req.Status, id)
+	if err != nil {
+		log.Printf("Error updating appointment status: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update appointment status"})
+		return
+	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Appointment not found"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Appointment status updated successfully"})
+}
+
+func DeleteAppointmentByIDForAdmin(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid appointment ID"})
+		return
+	}
+	//SOFT DEL
+	// result, err := db.Pool.Exec(c, `
+	//     UPDATE appointments
+	//     SET is_delete = true, updated_at = NOW()
+	//     WHERE id = $1
+	// `, id)
+	//HARD DEL
+	result, err := db.Pool.Exec(c, `
+        DELETE FROM appointments 
+        WHERE id = $1
+    `, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete appointment"})
+		return
+	}
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Appointment not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Appointment deleted successfully"})
 }
 
 // func generateSlotsForDoctor(doctorID int, dateStr string, duration_minutes int) []models.Slot {
