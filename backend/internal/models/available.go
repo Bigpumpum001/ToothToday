@@ -21,6 +21,7 @@ type SlotStatus string
 const (
 	Available   SlotStatus = "available"
 	Booked      SlotStatus = "booked"
+	Unavailable SlotStatus = "unavailable" // สำหรับ slot ที่ไม่สามารถจองได้เพราะเวลาไม่พอ
 	Pending     SlotStatus = "pending"
 	Blocked     SlotStatus = "blocked"
 	NoShow      SlotStatus = "no_show"
