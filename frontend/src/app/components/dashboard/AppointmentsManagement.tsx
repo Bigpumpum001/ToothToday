@@ -83,7 +83,7 @@ export default function AppointmentsManagement() {
       setLoading(true);
       const res = await api.get(`/appointments?date=${selectedDate}`);
       setAppointments(res.data);
-      console.log(res.data);
+      // console.log(res.data);
     } catch (error) {
       console.error("Error fetching appointments:", error);
       Swal.fire("ผิดพลาด", "ไม่สามารถโหลดข้อมูลคิวได้", "error");
@@ -94,7 +94,7 @@ export default function AppointmentsManagement() {
 
   const handleStatusChange = async () => {
     if (!selectedAppointment) return;
-    console.log(newStatus);
+    // console.log(newStatus);
     try {
       await api.put(`/appointments/${selectedAppointment.id}`, {
         status: newStatus,
@@ -123,7 +123,7 @@ export default function AppointmentsManagement() {
 
     if (result.isConfirmed) {
       try {
-        await api.post(`/appointments/${id}/delete`, {});
+        await api.delete(`/appointments/${id}/delete`, {});
         Swal.fire("สำเร็จ", "ลบคิวสำเร็จ", "success");
         fetchAppointments();
       } catch (error) {

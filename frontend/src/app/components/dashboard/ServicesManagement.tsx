@@ -29,10 +29,10 @@ export default function ServicesManagement() {
     content: "",
   });
 
-  useEffect(() => {
-    fetchServicesWithContent();
-    console.log(servicesWithContent);
-  }, []);
+  // useEffect(() => {
+  //   fetchServicesWithContent();
+  //   console.log(servicesWithContent);
+  // }, []);
 
   const fetchServicesWithContent = async () => {
     try {
@@ -71,7 +71,7 @@ export default function ServicesManagement() {
       if (imageFile) {
         formData.append("file", imageFile);
       }
-      console.log("w", serviceForm);
+      // console.log("w", serviceForm);
       if (editingService) {
         await api.put(`/services-content/${editingService.id}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },

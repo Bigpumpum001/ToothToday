@@ -58,7 +58,7 @@ function Register() {
 
     try {
       const data = await register({ name, email, password, phone });
-      console.log(data);
+      // console.log(data);
       Swal.fire({
         icon: "success",
         title: "สมัครสมาชิกสำเร็จ!",
