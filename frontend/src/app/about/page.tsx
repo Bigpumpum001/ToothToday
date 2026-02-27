@@ -1,9 +1,9 @@
 "use client"
 import React from 'react'
-import Header from '../components/common/Header'
-import Footer from '../components/common/Footer'
-import About from '../components/about/About'
-import ServicesSection from '../components/home/ServicesSection'
+import Header from '../../components/common/Header'
+import Footer from '../../components/common/Footer'
+import About from '../../components/features/about/About'
+import ServicesSection from '../../components/features/home/ServicesSection'
 function page() {
   return (
     <>

@@ -2,8 +2,8 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
-import DashboardLayout from "@/app/components/dashboard/DashboardLayout";
-import AppointmentsManagement from "@/app/components/dashboard/AppointmentsManagement";
+import DashboardLayout from "@/components/features/dashboard/DashboardLayout";
+import AppointmentsManagement from "@/components/features/dashboard/AppointmentsManagement";
 
 type TokenPayload = {
   exp: number;

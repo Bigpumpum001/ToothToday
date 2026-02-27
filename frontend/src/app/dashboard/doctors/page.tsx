@@ -1,6 +1,6 @@
 "use client";
-import DashboardLayout from "@/app/components/dashboard/DashboardLayout";
-import DoctorsManagement from "@/app/components/dashboard/DoctorsManagement";
+import DashboardLayout from "@/components/features/dashboard/DashboardLayout";
+import DoctorsManagement from "@/components/features/dashboard/DoctorsManagement";
 
 export default function DoctorsPage() {
   return (

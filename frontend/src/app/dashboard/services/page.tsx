@@ -1,6 +1,6 @@
 "use client";
-import DashboardLayout from "@/app/components/dashboard/DashboardLayout";
-import ServicesManagement from "@/app/components/dashboard/ServicesManagement";
+import DashboardLayout from "@/components/features/dashboard/DashboardLayout";
+import ServicesManagement from "@/components/features/dashboard/ServicesManagement";
 
 export default function ServicesPage() {
   return (
