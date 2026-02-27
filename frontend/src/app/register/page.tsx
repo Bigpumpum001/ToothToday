@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
-import Header from "../components/common/Header";
-import Footer from "../components/common/Footer";
-import Register from "../components/register/Register";
+import Header from "../../components/common/Header";
+import Footer from "../../components/common/Footer";
+import Register from "../../components/features/auth/register/Register";
 function page() {
   return (
     <>

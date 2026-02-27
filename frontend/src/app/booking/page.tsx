@@ -1,8 +1,8 @@
 "use client"
-import BookingForm from '../components/booking/BookingForm'
+import BookingForm from '../../components/features/booking/BookingForm'
 import React from 'react'
-import Header from '../components/common/Header'
-import Footer from '../components/common/Footer'
+import Header from '../../components/common/Header'
+import Footer from '../../components/common/Footer'
 export default function BookingPage() {
   return (
   <>
