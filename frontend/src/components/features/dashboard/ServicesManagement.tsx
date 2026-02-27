@@ -29,10 +29,10 @@ export default function ServicesManagement() {
     content: "",
   });
 
-  // useEffect(() => {
-  //   fetchServicesWithContent();
-  //   console.log(servicesWithContent);
-  // }, []);
+  useEffect(() => {
+    fetchServicesWithContent();
+    // console.log(servicesWithContent);
+  }, []);
 
   const fetchServicesWithContent = async () => {
     try {
