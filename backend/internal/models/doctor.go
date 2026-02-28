@@ -15,10 +15,12 @@ type Doctor struct {
 }
 
 type DoctorSchedules struct {
-	ID           int    `json:"id"`
-	DoctorID     int    `json:"doctor_id"`
-	DayOfWeek    int    `json:"day_of_week"`
-	StartTime    string `json:"start_time"`
-	EndTime      string `json:"end_time"`
-	SlotInterval int    `json:"slot_interval"` // นาที
+	ID             int    `json:"id"`
+	DoctorID       int    `json:"doctor_id"`
+	DoctorName     string `json:"doctor_name"`
+	DayOfWeek      int    `json:"day_of_week"`
+	StartTime      string `json:"start_time"`
+	EndTime        string `json:"end_time"`
+	SlotInterval   int    `json:"slot_interval"` // นาที
+	Specialization string `json:"specialization"`
 }

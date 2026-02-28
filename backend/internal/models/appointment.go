@@ -1,8 +1,12 @@
 package models
 
-import "time"
+import (
+	"mime/multipart"
+	"time"
+)
 
 type Appointment struct {
+	// db fields
 	ID              int       `json:"id"`
 	UserID          int       `json:"user_id"`
 	DoctorID        int       `json:"doctor_id"`
@@ -13,7 +17,8 @@ type Appointment struct {
 	ImageURL        *string   `json:"image_url"`
 	DurationMinutes int       // `json:"duration_minutes"`
 	IsDelete        bool      `json:"is_delete"`
-	// return create appointment
+
+	// return create appointment (Response fields)
 	DoctorName  string `json:"doctor_name"`
 	ServiceName string `json:"service_name"`
 	TimeRange   string `json:"time_range"`
@@ -38,6 +43,9 @@ type ProfileAppointment struct {
 	Date        string  `json:"date"`
 	IsPast      string  `json:"is_past"`
 	IsDelete    bool    `json:"is_delete"`
+
+	StartTime time.Time `json:"-"`
+	Duration  int       `json:"-"`
 }
 type AppointmentForAdmin struct {
 	ID              int       `json:"id"`
@@ -51,4 +59,29 @@ type AppointmentForAdmin struct {
 	ImageURL        *string   `json:"image_url"`
 	DurationMinutes int       `json:"duration_minutes"`
 	IsDelete        bool      `json:"is_delete"`
+}
+
+type CreateAppointmentInput struct {
+	UserID          int
+	DoctorID        int
+	ServiceID       int
+	AppointmentTime time.Time
+	Status          string
+	Note            string
+	FileHeader      *multipart.FileHeader
+}
+
+type CreateAppointmentResult struct {
+	DoctorName  string
+	ServiceName string
+	Date        string
+	PublicURL   string
+	TimeRange   string
+}
+
+type AppointmentDetail struct {
+	DoctorName      string
+	ServiceName     string
+	AppointmentTime time.Time
+	DurationMinutes int
 }
