@@ -1,7 +1,7 @@
 # Dependencies
 /node_modules
 .gitigonore 
-
+.vscode/
 # 8frontend
 /vendor # สำหรับ Go modules
 
@@ -18,3 +18,6 @@
 
 # Environment variables
 .env*
+.vercel
+
+toothtoday-gcs.json
